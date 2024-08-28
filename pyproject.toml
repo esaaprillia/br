@@ -1,194 +1,124 @@
+# SPDX-FileCopyrightText: 2021 The meson-python developers
+#
+# SPDX-License-Identifier: MIT
+
 [build-system]
-build-backend = "mesonpy"
+build-backend = 'mesonpy'
+backend-path = ['.']
 requires = [
-    "meson >= 1.2.0",
-    "meson-python >= 0.13.1",
-    "pybind11 >= 2.12.0",
+  'meson >= 0.63.3',
+  'pyproject-metadata >= 0.7.1',
+  'tomli >= 1.0.0; python_version < "3.11"',
+  'setuptools >= 60.0; python_version >= "3.12"',
 ]
 
 [project]
+name = 'meson-python'
+description = 'Meson Python build backend (PEP 517)'
+readme = 'README.rst'
+requires-python = '>= 3.7'
+license = { file = 'LICENSES/MIT.txt' }
+keywords = ['meson', 'build', 'backend', 'pep517', 'package']
 authors = [
-    {name = "Ian Thomas", email = "ianthomas23@gmail.com"},
+  { name = 'Filipe Laíns', email = 'lains@riseup.net' },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
-    "Programming Language :: C++",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Information Analysis",
-    "Topic :: Scientific/Engineering :: Mathematics",
-    "Topic :: Scientific/Engineering :: Visualization",
+  'Development Status :: 4 - Beta',
+  'Programming Language :: Python',
 ]
+
 dependencies = [
-    "numpy >= 1.20",
+  'colorama; os_name == "nt"',
+  'meson >= 0.63.3',
+  'pyproject-metadata >= 0.7.1',
+  'tomli >= 1.0.0; python_version < "3.11"',
+  'setuptools >= 60.0; python_version >= "3.12"',
 ]
-description = "Python library for calculating contours of 2D quadrilateral grids"
-dynamic = ["version"]
-license = {file = "LICENSE"}
-name = "contourpy"
-readme = "README_simple.md"
-requires-python = ">= 3.9"
+
+dynamic = [
+  'version',
+]
 
 [project.optional-dependencies]
-docs = [
-    "furo",
-    "sphinx >= 7.2",
-    "sphinx-copybutton",
-]
-bokeh = [
-    # Optional dependencies to support use of bokeh renderer.
-    # Also needs chrome/chromium and chromedriver for export to PNG/SVG/buffer.
-    "bokeh",
-    "selenium",
-]
-mypy = [
-    # Requirements to run mypy to check type annotations.
-    "contourpy[bokeh,docs]",
-    "docutils-stubs",
-    "mypy == 1.8.0",
-    "types-Pillow",
-]
 test = [
-    # Standard test dependencies.
-    "contourpy[test-no-images]",
-    "matplotlib",
-    "Pillow",
+  'build',
+  'pytest >= 6.0',
+  'pytest-cov[toml]',
+  'pytest-mock',
+  'auditwheel',
+  'cython >= 0.29.34', # required for Python 3.12 support
+  'wheel',
+  'typing-extensions >= 3.7.4; python_version < "3.10"',
 ]
-test-no-images = [
-    # Dependencies to run tests excluding image-generating tests.
-    "pytest",
-    "pytest-cov",
-    "pytest-xdist",
-    "wurlitzer",
+docs = [
+  'furo >= 2021.08.31',
+  'sphinx ~= 4.0',
+  'sphinx-autodoc-typehints >= 1.10',
+  'sphinx-contributors >= 0.2.2',
+  'sphinx-copybutton >= 0.5.0',
+  'sphinx-design >= 0.1.0',
+  'sphinx-autobuild',
+  'sphinxcontrib-spelling >= 7.0.0',
+  'sphinxext-opengraph >= 0.7.0',
 ]
 
 [project.urls]
-Homepage = "https://github.com/contourpy/contourpy"
-Changelog = "https://contourpy.readthedocs.io/en/latest/changelog.html"
-Documentation = "https://contourpy.readthedocs.io"
-Repository = "https://github.com/contourpy/contourpy"
-
-
-[tool.meson-python.args]
-compile = [
-    "-v",
-]
-dist = []
-install = []
-setup = [
-    "--vsenv",  # Force use of MSVC on Windows, ignored on other platforms
-]
-
-
-[tool.cibuildwheel]
-build-frontend = "build"
-build = "cp39-* cp310-* cp311-* cp312-* pp39-*"
-skip = "*-musllinux_ppc64le *-musllinux_s390x pp*_aarch64 pp*_ppc64le pp*_s390x"
-test-command = [
-    'python -c "from contourpy.util import build_config; from pprint import pprint; pprint(build_config())"',
-    'python -c "import contourpy as c; print(c.contour_generator(z=[[0, 1], [2, 3]]).lines(0.9))"',
-]
-# Only test combinations for which a numpy wheel exists to avoid compiling numpy from source.
-test-skip = "*-musllinux_* *_ppc64le *_s390x"
-
-
-[tool.codespell]
-ignore-words-list = "nd"
-
-
-[tool.coverage.report]
-exclude_also = [
-    "if TYPE_CHECKING:",
-    "\\s+pass",
-    "raise.*Invalid FillType",
-    "raise.*Invalid LineType",
-]
+homepage = 'https://github.com/mesonbuild/meson-python'
+repository = 'https://github.com/mesonbuild/meson-python'
+documentation = 'https://meson-python.readthedocs.io/'
+changelog = 'https://meson-python.readthedocs.io/en/latest/changelog.html'
 
 
 [tool.mypy]
-files = ["lib/contourpy", "benchmarks", "docs", "tests"]
-python_version = "3.10"
-
-check_untyped_defs = true
-disallow_untyped_defs = true
-no_implicit_optional = true
-strict = true
-warn_unused_ignores = true
-
-[[tool.mypy.overrides]]
-module = [
-    "asv.*",
-    "wurlitzer",
-]
+show_error_codes = true
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "tests.test_internal"
-disable_error_code = "call-arg"
-
-[[tool.mypy.overrides]]
-module = "tests.test_typecheck"
-disable_error_code = ["arg-type", "list-item"]
+strict = true
 
 
 [tool.ruff]
-exclude = [
-    "__pycache__",
-    ".asv",
-    ".git",
-    ".mypy_cache",
-    "build",
-    "dist",
+line-length = 127
+extend-ignore = [
+  'B019',
 ]
-ignore = [
-    "PLW1510",
-    "PLW2901",
-]
-line-length = 100
 select = [
-    "B",
-    "BLE",
-    "C4",
-    "COM",
-    "E",
-    "F",
-    "FA",
-    "FLY",
-    "G",
-    "I",
-    "ICN",
-    "INT",
-    "NPY",
-    "PERF",
-    "PGH",
-    "PIE",
-    "PLC",
-    "PLE",
-    "PLW",
-    "PYI",
-    "Q",
-    "RSE",
-    "RUF",
-    "TCH",
-    "TID",
-    "UP",
-    "W",
-    "YTT",
+  'B',       # flake8-bugbear
+  'C4',      # flake8-comprehensions
+  'C9',      # mccabe
+  'E',       # pycodestyle
+  'F',       # pyflakes
+  'W',       # pycodestyle
+  'RUF100',  # ruff
 ]
-target-version = "py39"
 
-[tool.ruff.lint.isort]
-known-first-party = ["contourpy"]
-force-sort-within-sections = true
 
-[tool.ruff.per-file-ignores]
-"docs/sphinxext/name_supports.py" = ["E402"]
-"docs/sphinxext/name_supports_type.py" = ["E402"]
-"docs/sphinxext/plot_directive.py" = ["B009", "B010"]
-"lib/contourpy/_contourpy.pyi" = ["E501", "PLW0406"]
+[tool.ruff.mccabe]
+max-complexity = 12
+
+
+[tool.isort]
+lines_between_types = 1
+lines_after_imports = 2
+multi_line_output = 5
+known_first_party = 'mesonpy'
+line_length = 127
+
+
+[tool.coverage.run]
+disable_warnings = [
+  'couldnt-parse',
+]
+
+[tool.coverage.html]
+show_contexts = true
+
+
+[tool.pytest.ini_options]
+minversion = '6.0'
+addopts = ['-ra', '--strict-markers', '--strict-config']
+log_cli_level = 'info'
+norecursedirs = 'tests/packages/*'
+testpaths = ['tests']
+xfail_strict = true
+filterwarnings = [
+  'error',
+]
