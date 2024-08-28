@@ -64,7 +64,7 @@ conf_data.set('compile_command', ' '.join(cpp.cmd_array()))
 
 # Host and build machines
 machines = {
-  'host': host_machine,
+  'host': build_machine,
   'build': build_machine,
 }
 foreach name, machine : machines
