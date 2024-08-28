@@ -63,10 +63,10 @@ conf_data.set('linker_id', cpp.get_linker_id())
 conf_data.set('compile_command', ' '.join(cpp.cmd_array()))
 
 # Host and build machines
-machines = {
-  'host': host_machine,
-  'build': build_machine,
-}
+#machines = {
+#  'host': host_machine,
+#  'build': build_machine,
+#}
 foreach name, machine : machines
   conf_data.set(name + '_cpu', machine.cpu())
   conf_data.set(name + '_cpu_family', machine.cpu_family())
