@@ -69,6 +69,10 @@ documentation = 'https://mesonbuild.com/meson-python/'
 changelog = 'https://mesonbuild.com/meson-python/changelog.html'
 
 
+[tool.setuptools]
+py-modules = []
+
+
 [tool.mypy]
 show_error_codes = true
 ignore_missing_imports = true
