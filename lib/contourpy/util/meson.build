@@ -28,7 +28,7 @@ conf_data.set('meson_version', meson.version())
 conf_data.set('mesonpy_version',
   run_command(
     py3,
-    ['-c', 'import mesonpy; print(mesonpy.__version__)'],
+#    ['-c', 'import mesonpy; print(mesonpy.__version__)'],
     check: true
   ).stdout().strip()
 )
