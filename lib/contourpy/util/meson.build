@@ -25,13 +25,13 @@ conf_data.set('python_path', py3.full_path().replace('\\', '/'))
 # package versions
 conf_data.set('contourpy_version', meson.project_version())
 conf_data.set('meson_version', meson.version())
-conf_data.set('mesonpy_version',
-  run_command(
-    py3,
-    ['-c', 'import mesonpy; print(mesonpy.__version__)'],
-    check: true
-  ).stdout().strip()
-)
+#conf_data.set('mesonpy_version',
+#  run_command(
+#    py3,
+#    ['-c', 'import mesonpy; print(mesonpy.__version__)'],
+#    check: true
+#  ).stdout().strip()
+#)
 conf_data.set('pybind11_version', pybind11_dep.version())
 
 # Misc meson settings
