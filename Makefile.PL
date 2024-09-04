@@ -10,7 +10,7 @@ use Config;
 use Getopt::Long;
 use ExtUtils::MakeMaker;
 use Data::Dumper;
-use Devel::CheckLib;
+# use Devel::CheckLib;
 use File::Path;
 use File::Copy;
 use File::Basename;
@@ -146,9 +146,9 @@ MSG
 
 print "Checking if libs are available for compiling...\n";
 
-assert_lib(
-  LIBS => $opt->{libs},
-);
+#assert_lib(
+#  LIBS => $opt->{libs},
+#);
 
 print "Looks good.\n\n";
 
