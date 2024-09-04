@@ -566,52 +566,6 @@ sub Configure {
                     push @ldflags, $_;
                 }
             }
-            my $check_passed;
-            if (defined $main_lib) {
-                my $function = "\n#ifndef MYSQL_VERSION_ID\n#include <mysql_version.h>\n#endif\n";
-                if ($_ eq 'libmysqld-libs') {
-                    # libmariadbd.so from MariaDB 10.3.1 - 10.3.7 is broken, unusable
-                    # and always crash in mysql_real_connect() function, so avoid its usage
-                    # https://jira.mariadb.org/browse/MDEV-16478
-                    $function .= "\n#if defined(MARIADB_BASE_VERSION) || defined(MARIADB_PACKAGE_VERSION)\nif (mysql_get_client_version() >= 100301 && mysql_get_client_version() < 100308) return 1;\n#endif\n";
-                    # libmysqld.a from MySQL 8.x is broken too
-                    $function .= "\n#if !defined(MARIADB_BASE_VERSION) && !defined(MARIADB_PACKAGE_VERSION)\nif (mysql_get_client_version() >= 80000) return 1;\n#endif\n";
-                }
-                # MariaDB Connector/C 3.1.10+ has broken mysql_get_client_version() function, so use mariadb_get_infov(MARIADB_CLIENT_VERSION_ID) instead
-                $function .= "size_t version;\n";
-                $function .= "#if defined(MARIADB_PACKAGE_VERSION) && defined(MARIADB_PACKAGE_VERSION_ID) && MARIADB_PACKAGE_VERSION_ID >= 30000\n";
-                $function .= "if (mariadb_get_infov((void *)0, MARIADB_CLIENT_VERSION_ID, &version) != 0)\n";
-                $function .= "#endif\n";
-                $function .= "version = mysql_get_client_version();\n";
-                $function .= 'return (version == MYSQL_VERSION_ID) ? 0 : 1;';
-                # libmysqld is built using g++ rather than gcc and sometimes
-                # we have to use libstdc++ to resolve linking problems
-                foreach my $add_ldflags (undef, '-lstdc++') {
-                    my $ldflags = join ' ', @ldflags, (defined $add_ldflags ? $add_ldflags : ());
-                    if ($Config{usedl}) {
-                        # check that we can create a shared library (not executable)
-                        check_lib(
-                            LIBS => (join ' ', @libdirs, $main_lib),
-                            ldflags => (join ' ', @libdirs, $ldflags, $Config{lddlflags}),
-                            ccflags => (join ' ', $opt->{cflags}, $Config{cccdlflags}),
-                            header => \@mysql_headers,
-                            function => $function,
-                            not_execute => 1,
-                        ) or next;
-                    }
-                    # and now create executable and do real version check
-                    check_lib(
-                        LIBS => (join ' ', @libdirs, $main_lib),
-                        ldflags => (join ' ', @libdirs, $ldflags),
-                        ccflags => $opt->{cflags},
-                        header => \@mysql_headers,
-                        function => $function,
-                    ) or next;
-                    $str .= ' ' . $add_ldflags if defined $add_ldflags;
-                    $check_passed = 1;
-                    last;
-                }
-            }
             # libs param is checked as last, so ensure that mysql_config
             # error is reported back to the caller
             next unless $_ eq 'libs' or $check_passed;
