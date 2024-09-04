@@ -568,7 +568,6 @@ sub Configure {
             }
             # libs param is checked as last, so ensure that mysql_config
             # error is reported back to the caller
-            next unless $_ eq 'libs' or $check_passed;
             $opt->{$param} = $str;
             $source->{$param} = "mysql_config";
             return;
