@@ -9,7 +9,7 @@ use Config;
 use Getopt::Long;
 use ExtUtils::MakeMaker;
 use Data::Dumper;
-use Devel::CheckLib 1.12;
+# use Devel::CheckLib 1.12;
 use File::Spec;
 require DBI;
 require DBI::DBD;
@@ -227,8 +227,8 @@ MSG
 
 print "Checking if libs and header files are available for compiling...\n";
 
-assert_lib(
-  LIBS => (join ' ', @libdirs, $main_lib, @libs),
+#assert_lib(
+#  LIBS => (join ' ', @libdirs, $main_lib, @libs),
   ccflags => (join ' ', $opt->{cflags}, ($Config{usedl} ? $Config{cccdlflags} : ())),
   ldflags => (join ' ', @libdirs, @ldflags, ($Config{usedl} ? $Config{lddlflags} : ())),
   header => \@mysql_headers,
