@@ -1067,6 +1067,64 @@ set(ZLIB_PUBLIC_HDRS
     ${CMAKE_CURRENT_BINARY_DIR}/zlib_name_mangling${SUFFIX}.h
     ${CMAKE_CURRENT_BINARY_DIR}/zlib${SUFFIX}.h
 )
+if(ARMv8)
+set(ZLIB_PRIVATE_HDRS
+    adler32_p.h
+    chunkset_tpl.h
+    compare256_rle.h
+    arch_functions.h
+    crc32_braid_p.h
+    crc32_braid_comb_p.h
+    crc32_braid_tbl.h
+    deflate.h
+    deflate_p.h
+    functable.h
+    inffast_tpl.h
+    inffixed_tbl.h
+    inflate.h
+    inflate_p.h
+    inftrees.h
+    insert_string_tpl.h
+    match_tpl.h
+    trees.h
+    trees_emit.h
+    trees_tbl.h
+    zbuild.h
+    zendian.h
+    zutil.h
+    contrib/arm/chunkcopy.h
+)
+set(ZLIB_SRCS
+    arch/generic/adler32_c.c
+    arch/generic/adler32_fold_c.c
+    arch/generic/chunkset_c.c
+    arch/generic/compare256_c.c
+    arch/generic/crc32_braid_c.c
+    arch/generic/crc32_fold_c.c
+    arch/generic/slide_hash_c.c
+    adler32.c
+    compress.c
+    crc32.c
+    crc32_braid_comb.c
+    deflate.c
+    deflate_fast.c
+    deflate_huff.c
+    deflate_medium.c
+    deflate_quick.c
+    deflate_rle.c
+    deflate_slow.c
+    deflate_stored.c
+    functable.c
+    infback.c
+    inftrees.c
+    insert_string.c
+    insert_string_roll.c
+    contrib/arm/inflate.c
+    contrib/arm/inffast.c
+    trees.c
+    uncompr.c
+    zutil.c
+else()
 set(ZLIB_PRIVATE_HDRS
     adler32_p.h
     chunkset_tpl.h
@@ -1122,6 +1180,7 @@ set(ZLIB_SRCS
     uncompr.c
     zutil.c
 )
+endif()
 
 if(WITH_RUNTIME_CPU_DETECTION)
     list(APPEND ZLIB_PRIVATE_HDRS cpu_features.h)
