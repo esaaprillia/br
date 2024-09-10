@@ -1124,6 +1124,7 @@ set(ZLIB_SRCS
     trees.c
     uncompr.c
     zutil.c
+)
 else()
 set(ZLIB_PRIVATE_HDRS
     adler32_p.h
