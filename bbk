@@ -8,6 +8,7 @@ inflate.h
 inftrees.h
 trees.h
 zutil.h
+contrib/arm/chunkcopy.h
 )
 set(ZLIB_SRCS
 adler32.c
@@ -18,10 +19,10 @@ gzclose.c
 gzlib.c
 gzread.c
 gzwrite.c
-inflate.c
 infback.c
 inftrees.c
-inffast.c
+contrib/arm/inflate.c
+contrib/arm/inffast.c
 trees.c
 uncompr.c
 zutil.c
