@@ -1,194 +1,69 @@
-[build-system]
-build-backend = "mesonpy"
-requires = [
-    "meson >= 1.2.0",
-    "meson-python >= 0.13.1",
-    "pybind11 >= 2.12.0",
-]
-
 [project]
-authors = [
-    {name = "Ian Thomas", email = "ianthomas23@gmail.com"},
-]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
-    "Programming Language :: C++",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Information Analysis",
-    "Topic :: Scientific/Engineering :: Mathematics",
-    "Topic :: Scientific/Engineering :: Visualization",
-]
-dependencies = [
-    "numpy >= 1.20",
-]
-description = "Python library for calculating contours of 2D quadrilateral grids"
-dynamic = ["version"]
-license = {file = "LICENSE"}
-name = "contourpy"
-readme = "README_simple.md"
-requires-python = ">= 3.9"
+name = "pycairo"
+version = "1.27.1"
+description = "Python interface for cairo"
+readme = "README.rst"
+requires-python = ">=3.9"
+license = {text = "LGPL-2.1-only OR MPL-1.1"}
+maintainers = [{name = "Christoph Reiter", email = "reiter.christoph@gmail.com"}]
+urls = {Homepage = "https://pycairo.readthedocs.io", Source = "https://github.com/pygobject/pycairo"}
 
-[project.optional-dependencies]
-docs = [
-    "furo",
-    "sphinx >= 7.2",
-    "sphinx-copybutton",
-]
-bokeh = [
-    # Optional dependencies to support use of bokeh renderer.
-    # Also needs chrome/chromium and chromedriver for export to PNG/SVG/buffer.
-    "bokeh",
-    "selenium",
-]
-mypy = [
-    # Requirements to run mypy to check type annotations.
-    "contourpy[bokeh,docs]",
-    "docutils-stubs",
-    "mypy == 1.8.0",
-    "types-Pillow",
-]
-test = [
-    # Standard test dependencies.
-    "contourpy[test-no-images]",
-    "matplotlib",
-    "Pillow",
-]
-test-no-images = [
-    # Dependencies to run tests excluding image-generating tests.
-    "pytest",
-    "pytest-cov",
-    "pytest-xdist",
-    "wurlitzer",
+[tool.poetry]
+name = "pycairo"
+version = "1.26.2"
+description = "Python interface for cairo"
+authors = ["Christoph Reiter"]
+packages = [
+    { include = "cairo" },
 ]
 
-[project.urls]
-Homepage = "https://github.com/contourpy/contourpy"
-Changelog = "https://contourpy.readthedocs.io/en/latest/changelog.html"
-Documentation = "https://contourpy.readthedocs.io"
-Repository = "https://github.com/contourpy/contourpy"
+[tool.poetry.dependencies]
+python = "^3.9"
 
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.0"
+hypothesis = "^6.58.0"
+mypy = {version = "1.8.0", markers = "platform_python_implementation != 'PyPy'"}
+flake8 = "^7.0.0"
+Sphinx = "^6.2.1"
+sphinx-rtd-theme = "^2.0.0"
+coverage = {extras = ["toml"], version = "^7.2.3"}
+sphinx-autobuild = "^2021.3.14"
+meson-python = ">= 0.16.0"
 
-[tool.meson-python.args]
-compile = [
-    "-v",
+[tool.coverage.run]
+include = [
+    "cairo/*",
+    "tests/*"
 ]
-dist = []
-install = []
-setup = [
-    "--vsenv",  # Force use of MSVC on Windows, ignored on other platforms
-]
-
-
-[tool.cibuildwheel]
-build-frontend = "build"
-build = "cp39-* cp310-* cp311-* cp312-* pp39-*"
-skip = "*-musllinux_ppc64le *-musllinux_s390x pp*_aarch64 pp*_ppc64le pp*_s390x"
-test-command = [
-    'python -c "from contourpy.util import build_config; from pprint import pprint; pprint(build_config())"',
-    'python -c "import contourpy as c; print(c.contour_generator(z=[[0, 1], [2, 3]]).lines(0.9))"',
-]
-# Only test combinations for which a numpy wheel exists to avoid compiling numpy from source.
-test-skip = "*-musllinux_* *_ppc64le *_s390x"
-
-
-[tool.codespell]
-ignore-words-list = "nd"
-
-
-[tool.coverage.report]
-exclude_also = [
-    "if TYPE_CHECKING:",
-    "\\s+pass",
-    "raise.*Invalid FillType",
-    "raise.*Invalid LineType",
-]
-
 
 [tool.mypy]
-files = ["lib/contourpy", "benchmarks", "docs", "tests"]
-python_version = "3.10"
-
-check_untyped_defs = true
+disallow_any_unimported = true
+disallow_any_expr = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
 disallow_untyped_defs = true
+check_untyped_defs = true
+warn_return_any = true
 no_implicit_optional = true
-strict = true
-warn_unused_ignores = true
+disallow_any_decorated = true
+disallow_any_explicit = false
+strict_optional = true
+follow_imports = "silent"
+exclude = ["^(examples/|build|docs/)"]
 
 [[tool.mypy.overrides]]
-module = [
-    "asv.*",
-    "wurlitzer",
-]
-ignore_missing_imports = true
+module = "setup"
+ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "tests.test_internal"
-disable_error_code = "call-arg"
+module = "tests.*"
+ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = "tests.test_typecheck"
-disable_error_code = ["arg-type", "list-item"]
+[tool.meson-python.args]
+setup = ["-Dwheel=true", "-Dtests=false"]
 
-
-[tool.ruff]
-exclude = [
-    "__pycache__",
-    ".asv",
-    ".git",
-    ".mypy_cache",
-    "build",
-    "dist",
-]
-ignore = [
-    "PLW1510",
-    "PLW2901",
-]
-line-length = 100
-select = [
-    "B",
-    "BLE",
-    "C4",
-    "COM",
-    "E",
-    "F",
-    "FA",
-    "FLY",
-    "G",
-    "I",
-    "ICN",
-    "INT",
-    "NPY",
-    "PERF",
-    "PGH",
-    "PIE",
-    "PLC",
-    "PLE",
-    "PLW",
-    "PYI",
-    "Q",
-    "RSE",
-    "RUF",
-    "TCH",
-    "TID",
-    "UP",
-    "W",
-    "YTT",
-]
-target-version = "py39"
-
-[tool.ruff.lint.isort]
-known-first-party = ["contourpy"]
-force-sort-within-sections = true
-
-[tool.ruff.per-file-ignores]
-"docs/sphinxext/name_supports.py" = ["E402"]
-"docs/sphinxext/name_supports_type.py" = ["E402"]
-"docs/sphinxext/plot_directive.py" = ["B009", "B010"]
-"lib/contourpy/_contourpy.pyi" = ["E501", "PLW0406"]
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python >= 0.16.0']
