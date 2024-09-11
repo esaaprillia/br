@@ -61,9 +61,9 @@ ignore_errors = true
 module = "tests.*"
 ignore_errors = true
 
-[tool.meson-python.args]
-setup = ["-Dwheel=true", "-Dtests=false"]
+#[tool.meson-python.args]
+#setup = ["-Dwheel=true", "-Dtests=false"]
 
-[build-system]
-build-backend = 'mesonpy'
-requires = ['meson-python >= 0.16.0']
+#[build-system]
+#build-backend = 'mesonpy'
+#requires = ['meson-python >= 0.16.0']
