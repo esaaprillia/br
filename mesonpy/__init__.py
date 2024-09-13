@@ -692,15 +692,29 @@ class Project():
                     family = 'aarch64' if arch == 'arm64' else arch
                     cross_file_data = textwrap.dedent(f'''
                         [binaries]
-                        c = ['cc', '-arch', {arch!r}]
-                        cpp = ['c++', '-arch', {arch!r}]
-                        objc = ['cc', '-arch', {arch!r}]
-                        objcpp = ['c++', '-arch', {arch!r}]
+                        c = [$(foreach BIN,$(TARGET_CC),'$(BIN)',)]
+                        c_ld = [$(foreach FLAG,$(TARGET_LINKER),'$(FLAG)',)]
+                        cpp = [$(foreach BIN,$(TARGET_CXX),'$(BIN)',)]
+                        cpp_ld = [$(foreach FLAG,$(TARGET_LINKER),'$(FLAG)',)]
+                        ar = '$(TARGET_AR)'
+                        strip = '$(TARGET_CROSS)strip'
+                        nm = '$(TARGET_NM)'
+                        pkg-config = '$(PKG_CONFIG)'
+                        cmake = '$(STAGING_DIR_HOST)/bin/cmake'
+                        python = '$(STAGING_DIR_HOST)/bin/python3'
+                        [built-in options]
+                        c_args = [$(foreach FLAG,$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS),'$(FLAG)',)]
+                        c_link_args = [$(foreach FLAG,$(TARGET_LDFLAGS) $(EXTRA_LDFLAGS),'$(FLAG)',)]
+                        cpp_args = [$(foreach FLAG,$(TARGET_CXXFLAGS) $(EXTRA_CXXFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS),'$(FLAG)',)]
+                        cpp_link_args = [$(foreach FLAG,$(TARGET_LDFLAGS) $(EXTRA_LDFLAGS),'$(FLAG)',)]
+                        prefix = '/usr'
                         [host_machine]
-                        system = 'darwin'
-                        cpu = {arch!r}
-                        cpu_family = {family!r}
-                        endian = 'little'
+                        system = 'linux'
+                        cpu = '$(MESON_CPU)'
+                        cpu_family = '$(MESON_ARCH)'
+                        endian = '$(if $(CONFIG_BIG_ENDIAN),big,little)'
+                        [properties]
+                        needs_exe_wrapper = true
                     ''')
                     self._meson_cross_file.write_text(cross_file_data)
                     self._meson_args['setup'].extend(('--cross-file', os.fspath(self._meson_cross_file)))
@@ -708,7 +722,19 @@ class Project():
         # write the native file
         native_file_data = textwrap.dedent(f'''
             [binaries]
-            python = '{sys.executable}'
+            c = [$(foreach BIN,$(HOSTCC),'$(BIN)',)]
+            cpp = [$(foreach BIN,$(HOSTCXX),'$(BIN)',)]
+            pkg-config = '$(PKG_CONFIG)'
+            cmake = '$(STAGING_DIR_HOST)/bin/cmake'
+            python = '$(STAGING_DIR_HOST)/bin/python3'
+            [built-in options]
+            c_args = [$(foreach FLAG,$(HOST_CFLAGS) $(HOST_CPPFLAGS),'$(FLAG)',)]
+            c_link_args = [$(foreach FLAG,$(HOST_LDFLAGS),'$(FLAG)',)]
+            cpp_args = [$(foreach FLAG,$(HOST_CXXFLAGS) $(HOST_CPPFLAGS),'$(FLAG)',)]
+            cpp_link_args = [$(foreach FLAG,$(HOST_LDFLAGS),'$(FLAG)',)]
+            prefix = '$(HOST_BUILD_PREFIX)'
+            sbindir = 'bin'
+            libdir = 'lib'
         ''')
         self._meson_native_file.write_text(native_file_data)
 
