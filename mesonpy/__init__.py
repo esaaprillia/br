@@ -692,15 +692,29 @@ class Project():
                     family = 'aarch64' if arch == 'arm64' else arch
                     cross_file_data = textwrap.dedent(f'''
                         [binaries]
-                        c = ['cc', '-arch', {arch!r}]
-                        cpp = ['c++', '-arch', {arch!r}]
-                        objc = ['cc', '-arch', {arch!r}]
-                        objcpp = ['c++', '-arch', {arch!r}]
+                        c = ['aarch64-openwrt-linux-musl-gcc',]
+                        c_ld = ['bfd',]
+                        cpp = ['aarch64-openwrt-linux-musl-g++',]
+                        cpp_ld = ['bfd',]
+                        ar = 'aarch64-openwrt-linux-musl-gcc-ar'
+                        strip = 'aarch64-openwrt-linux-musl-strip'
+                        nm = 'aarch64-openwrt-linux-musl-gcc-nm'
+                        pkg-config = '/home/runner/work/mosdns/mosdns/sdk/staging_dir/host/bin/pkg-config'
+                        cmake = '/home/runner/work/mosdns/mosdns/sdk/staging_dir/host/bin/cmake'
+                        python = '/home/runner/work/mosdns/mosdns/sdk/staging_dir/hostpkg/bin/python3'
+                        [built-in options]
+                        c_args = ['-Os', '-pipe', '-mcpu=generic', '-fno-caller-saves', '-fno-plt', '-fhonour-copts', '-ffile-prefix-map=/home/runner/work/mosdns/mosdns/sdk/build_dir/target-aarch64_generic_musl/pypi/meson_python-0.16.0=meson_python-0.16.0', '-Wformat', '-Werror=format-security', '-fstack-protector', '-D_FORTIFY_SOURCE=1', '-Wl,-z,now', '-Wl,-z,relro', '-I/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/usr/include', '-I/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/include', '-I/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/include/fortify',]
+                        c_link_args = ['-L/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/usr/lib', '-L/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/lib', '-fuse-ld=bfd', '-znow', '-zrelro',]
+                        cpp_args = ['-Os', '-pipe', '-mcpu=generic', '-fno-caller-saves', '-fno-plt', '-fhonour-copts', '-ffile-prefix-map=/home/runner/work/mosdns/mosdns/sdk/build_dir/target-aarch64_generic_musl/pypi/meson_python-0.16.0=meson_python-0.16.0', '-Wformat', '-Werror=format-security', '-fstack-protector', '-D_FORTIFY_SOURCE=1', '-Wl,-z,now', '-Wl,-z,relro', '-I/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/usr/include', '-I/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/include', '-I/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/include/fortify',]
+                        cpp_link_args = ['-L/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/usr/lib', '-L/home/runner/work/mosdns/mosdns/sdk/staging_dir/toolchain-aarch64_generic_gcc-13.3.0_musl/lib', '-fuse-ld=bfd', '-znow', '-zrelro',]
+                        prefix = '/usr'
                         [host_machine]
-                        system = 'darwin'
-                        cpu = {arch!r}
-                        cpu_family = {family!r}
+                        system = 'linux'
+                        cpu = 'generic'
+                        cpu_family = 'aarch64'
                         endian = 'little'
+                        [properties]
+                        needs_exe_wrapper = true
                     ''')
                     self._meson_cross_file.write_text(cross_file_data)
                     self._meson_args['setup'].extend(('--cross-file', os.fspath(self._meson_cross_file)))
