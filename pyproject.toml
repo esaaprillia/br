@@ -4,7 +4,7 @@
 
 [build-system]
 build-backend = 'mesonpy'
-backend-path = ['.']
+#backend-path = ['.']
 requires = [
   'meson >= 0.63.3; python_version < "3.12"',
   'meson >= 1.2.3; python_version >= "3.12"',
