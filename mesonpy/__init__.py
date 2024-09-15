@@ -669,46 +669,48 @@ class Project():
         # make sure the build dir exists
         self._build_dir.mkdir(exist_ok=True, parents=True)
 
-        # setuptools-like ARCHFLAGS environment variable support
-        if sysconfig.get_platform().startswith('macosx-'):
-            archflags = os.environ.get('ARCHFLAGS', '').strip()
-            if archflags:
-
-                # parse the ARCHFLAGS environment variable
-                parser = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
-                parser.add_argument('-arch', action='append')
-                args, unknown = parser.parse_known_args(archflags.split())
-                if unknown:
-                    raise ConfigError(f'Unknown flag specified in $ARCHFLAGS={archflags!r}')
-                arch, *other = set(args.arch)
-                if other:
-                    raise ConfigError(f'Multi-architecture builds are not supported but $ARCHFLAGS={archflags!r}')
-
-                macver, _, nativearch = platform.mac_ver()
-                if arch != nativearch:
-                    x = os.environ.setdefault('_PYTHON_HOST_PLATFORM', f'macosx-{macver}-{arch}')
-                    if not x.endswith(arch):
-                        raise ConfigError(f'$ARCHFLAGS={archflags!r} and $_PYTHON_HOST_PLATFORM={x!r} do not agree')
-                    family = 'aarch64' if arch == 'arm64' else arch
-                    cross_file_data = textwrap.dedent(f'''
-                        [binaries]
-                        c = ['cc', '-arch', {arch!r}]
-                        cpp = ['c++', '-arch', {arch!r}]
-                        objc = ['cc', '-arch', {arch!r}]
-                        objcpp = ['c++', '-arch', {arch!r}]
-                        [host_machine]
-                        system = 'darwin'
-                        cpu = {arch!r}
-                        cpu_family = {family!r}
-                        endian = 'little'
-                    ''')
-                    self._meson_cross_file.write_text(cross_file_data)
-                    self._meson_args['setup'].extend(('--cross-file', os.fspath(self._meson_cross_file)))
+        # write the cross file
+        cross_file_data = textwrap.dedent(f'''
+            [binaries]
+            c = ['$(TARGET_CC)']
+            c_ld = ['$(TARGET_LINKER)']
+            cpp = ['$(TARGET_CXX)']
+            cpp_ld = ['$(TARGET_LINKER)']
+            ar = '$(TARGET_AR)'
+            strip = '$(TARGET_CROSS)strip'
+            nm = '$(TARGET_NM)'
+            pkg-config = '$(PKG_CONFIG)'
+            cmake = '$(STAGING_DIR_HOST)/bin/cmake'
+            python = '$(STAGING_DIR_HOSTPKG)/bin/python3'
+            [built-in options]
+            c_args = ['$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)']
+            c_link_args = ['$(TARGET_LDFLAGS) $(EXTRA_LDFLAGS)']
+            cpp_args = ['$(TARGET_CXXFLAGS) $(EXTRA_CXXFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)']
+            cpp_link_args = ['$(TARGET_LDFLAGS) $(EXTRA_LDFLAGS)']
+            [host_machine]
+            system = 'linux'
+            cpu = '$(MESON_CPU)'
+            cpu_family = '$(MESON_ARCH)'
+            endian = 'little'
+            [properties]
+            needs_exe_wrapper = true
+        ''')
+        self._meson_cross_file.write_text(cross_file_data)
+        self._meson_args['setup'].extend(('--cross-file', os.fspath(self._meson_cross_file)))
 
         # write the native file
         native_file_data = textwrap.dedent(f'''
             [binaries]
-            python = '{sys.executable}'
+            c = ['$(HOSTCC)']
+            cpp = ['$(HOSTCXX)']
+            pkg-config = '$(PKG_CONFIG)'
+            cmake = '$(STAGING_DIR_HOST)/bin/cmake'
+            python = '$(STAGING_DIR_HOSTPKG)/bin/python3'
+            [built-in options]
+            c_args = ['$(HOST_CFLAGS) $(HOST_CPPFLAGS)']
+            c_link_args = ['$(HOST_LDFLAGS)']
+            cpp_args = ['$(HOST_CXXFLAGS) $(HOST_CPPFLAGS)']
+            cpp_link_args = ['$(HOST_LDFLAGS)']
         ''')
         self._meson_native_file.write_text(native_file_data)
 
