@@ -81,11 +81,11 @@ if host_machine.system() == 'os400'
 endif
 
 # Adding at project level causes many spurious -lgfortran flags.
-add_languages('fortran', native: false)
-ff = meson.get_compiler('fortran')
-if ff.has_argument('-Wno-conversion')
-  add_project_arguments('-Wno-conversion', language: 'fortran')
-endif
+#add_languages('fortran', native: false)
+#ff = meson.get_compiler('fortran')
+#if ff.has_argument('-Wno-conversion')
+#  add_project_arguments('-Wno-conversion', language: 'fortran')
+#endif
 
 if host_machine.system() == 'darwin'
   if cc.has_link_argument('-Wl,-ld_classic')
