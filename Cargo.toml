@@ -1,0 +1,76 @@
+[package]
+name = "tgt"
+version = "1.0.0"
+edition = "2021"
+description = "A simple TUI for Telegram"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/crate/tgt/1.0.0"
+homepage = "https://github.com/FedericoBruzzone/tgt"
+repository = "https://github.com/FedericoBruzzone/tgt"
+readme = "README.md"
+keywords = [
+    "tgt",
+    "tgtui",
+    "telegram",
+    "tui",
+    "tdlib",
+]
+authors = [
+    "Federico Bruzzone <federico.bruzzone.i@gmail.com>",
+    "Andrea Longoni",
+]
+default-run = "tgt"
+build = "build.rs"
+categories = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# [toolchain]
+# channel = "nightly-2020-07-10"
+# components = [ "rustfmt", "rustc-dev" ]
+# targets = [ "wasm32-unknown-unknown", "thumbv2-none-eabi" ]
+# profile = "minimal"
+
+[features]
+# By deafult you need to set the `LOCAL_TDLIB_PATH` environment variable to the path of the TDLib library. See CONTRIBUTING.md for more information.
+default = ["download-tdlib"]
+local-tdlib = ["tdlib-rs/local-tdlib"]
+download-tdlib = ["tdlib-rs/download-tdlib"]
+pkg-config = ["tdlib-rs/pkg-config"]
+
+[package.metadata.system-deps]
+tdjson = "1.8.29"
+
+[dependencies]
+config = "0.14.0"
+crossterm = { version = "0.28.1", features = ["event-stream"] }
+dirs = "5.0.1"
+futures = "0.3.30"
+lazy_static = "1.5.0"
+ratatui = "0.27.0"
+serde = "1.0.204"
+tdlib-rs = "1.0.5"
+tokio = { version = "1.39.2", features = ["full"] }
+tracing = "0.1.40"
+tracing-error = "0.2.0"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "chrono"] }
+tracing-appender = "0.2"
+arboard = { version = "3.4.0", features = ["wayland-data-control", "wl-clipboard-rs"] }
+chrono = "0.4.38"
+ratatui-image = "1.0.5"
+image = "0.25.2"
+signal-hook = "0.3.17"
+clap = { version = "4.5.13", features = ["derive"] }
+
+[build-dependencies]
+dirs = "5.0.1"
+reqwest = { version = "0.12.4", features = ["blocking"] }
+zip = { version = "2.1.6" }
+tdlib-rs = "1.0.5"
+
+[profile.dev]
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+strip = "debuginfo"
