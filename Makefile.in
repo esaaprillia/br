@@ -186,7 +186,7 @@ perl/Makefile: perl/Makefile.PL subdirs
 	if false; then							\
 	    carp=-MCarp::Always;					\
 	fi &&								\
-	export PERL5LIB="$$dir/perl" &&					\
+	export PERL5LIB="$(STAGING_DIR)/usr/lib/perl$(PERL_MAJOR)/$(PERL_VERSION2)" &&					\
 	$(PERL) $$carp Makefile.PL -NET-SNMP-IN-SOURCE=true		\
 	    -NET-SNMP-CONFIG="sh $$dir/net-snmp-config" $(PERLARGS)
 
