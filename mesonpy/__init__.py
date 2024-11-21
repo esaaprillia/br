@@ -31,7 +31,6 @@ import sysconfig
 import tarfile
 import tempfile
 import textwrap
-import time
 import typing
 import warnings
 
@@ -66,7 +65,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     MesonArgs = Mapping[MesonArgsKeys, List[str]]
 
 
-__version__ = '0.16.0'
+__version__ = '0.17.1'
 
 
 _NINJA_REQUIRED_VERSION = '1.8.2'
@@ -120,7 +119,6 @@ def _map_to_wheel(sources: Dict[str, Dict[str, Any]]) -> DefaultDict[str, List[T
                         f'It is recommended to set it in "import(\'python\').find_installation()"')
 
             if key == 'install_subdirs' or key == 'targets' and os.path.isdir(src):
-                assert os.path.isdir(src)
                 exclude_files = {os.path.normpath(x) for x in target.get('exclude_files', [])}
                 exclude_dirs = {os.path.normpath(x) for x in target.get('exclude_dirs', [])}
                 for root, dirnames, filenames in os.walk(src):
@@ -248,11 +246,12 @@ class Metadata(pyproject_metadata.StandardMetadata):
         return name
 
     @classmethod
-    def from_pyproject(cls, data: Mapping[str, Any], project_dir: Path) -> Metadata:  # type: ignore[override]
-        # The class method from the pyproject_metadata base class is not
-        # typed in a subclassing friendly way, thus annotations to ignore
-        # typing are needed.
-
+    def from_pyproject(  # type: ignore[override]
+        cls,
+        data: Mapping[str, Any],
+        project_dir: Path = os.path.curdir,
+        metadata_version: Optional[str] = None
+    ) -> Self:
         metadata = super().from_pyproject(data, project_dir)
 
         # Check for missing version field.
@@ -266,7 +265,7 @@ class Metadata(pyproject_metadata.StandardMetadata):
             fields = ', '.join(f'"{x}"' for x in unsupported_dynamic)
             raise pyproject_metadata.ConfigurationError(f'Unsupported dynamic fields: {fields}')
 
-        return metadata  # type: ignore[return-value]
+        return metadata
 
     # Local fix for a bug in pyproject-metadata. See
     # https://github.com/mesonbuild/meson-python/issues/454
@@ -368,7 +367,7 @@ class _WheelBuilder():
     @property
     def _license_file(self) -> Optional[pathlib.Path]:
         license_ = self._metadata.license
-        if license_:
+        if license_ and isinstance(license_, pyproject_metadata.License):
             return license_.file
         return None
 
@@ -406,22 +405,23 @@ class _WheelBuilder():
 
     @cached_property
     def _stable_abi(self) -> Optional[str]:
-        if self._limited_api:
-            # PyPy does not use a special extension module filename
-            # suffix for modules targeting the stable API.
-            if '__pypy__' not in sys.builtin_module_names:
-                # Verify stable ABI compatibility: examine files installed
-                # in {platlib} that look like extension modules, and raise
-                # an exception if any of them has a Python version
-                # specific extension filename suffix ABI tag.
-                for path, _ in self._manifest['platlib']:
-                    match = _EXTENSION_SUFFIX_REGEX.match(path.name)
-                    if match:
-                        abi = match.group('abi')
-                        if abi is not None and abi != 'abi3':
-                            raise BuildError(
-                                f'The package declares compatibility with Python limited API but extension '
-                                f'module {os.fspath(path)!r} is tagged for a specific Python version.')
+        # PyPy supports the limited API but does not provide a stable
+        # ABI, therefore extension modules using the limited API do
+        # not use the stable ABI filename suffix and wheels should not
+        # be tagged with the abi3 tag.
+        if self._limited_api and '__pypy__' not in sys.builtin_module_names:
+            # Verify stable ABI compatibility: examine files installed
+            # in {platlib} that look like extension modules, and raise
+            # an exception if any of them has a Python version
+            # specific extension filename suffix ABI tag.
+            for path, _ in self._manifest['platlib']:
+                match = _EXTENSION_SUFFIX_REGEX.match(path.name)
+                if match:
+                    abi = match.group('abi')
+                    if abi is not None and abi != 'abi3':
+                        raise BuildError(
+                            f'The package declares compatibility with Python limited API but extension '
+                            f'module {os.fspath(path)!r} is tagged for a specific Python version.')
             return 'abi3'
         return None
 
@@ -645,7 +645,7 @@ class Project():
         self._limited_api = False
 
         # load pyproject.toml
-        pyproject = tomllib.loads(self._source_dir.joinpath('pyproject.toml').read_text())
+        pyproject = tomllib.loads(self._source_dir.joinpath('pyproject.toml').read_text(encoding='utf-8'))
 
         # load meson args from pyproject.toml
         pyproject_config = _validate_pyproject_config(pyproject)
@@ -668,6 +668,10 @@ class Project():
 
         # make sure the build dir exists
         self._build_dir.mkdir(exist_ok=True, parents=True)
+
+        # if the build dir is empty, add .gitignore and .hgignore files
+        if not any(self._build_dir.iterdir()):
+            _add_ignore_files(self._build_dir)
 
         # setuptools-like ARCHFLAGS environment variable support
         if sysconfig.get_platform().startswith('macosx-'):
@@ -702,7 +706,7 @@ class Project():
                         cpu_family = {family!r}
                         endian = 'little'
                     ''')
-                    self._meson_cross_file.write_text(cross_file_data)
+                    self._meson_cross_file.write_text(cross_file_data, encoding='utf-8')
                     self._meson_args['setup'].extend(('--cross-file', os.fspath(self._meson_cross_file)))
 
         # write the native file
@@ -710,7 +714,7 @@ class Project():
             [binaries]
             python = '{sys.executable}'
         ''')
-        self._meson_native_file.write_text(native_file_data)
+        self._meson_native_file.write_text(native_file_data, encoding='utf-8')
 
         # reconfigure if we have a valid Meson build directory. Meson
         # uses the presence of the 'meson-private/coredata.dat' file
@@ -746,7 +750,7 @@ class Project():
             self._metadata.requires_python.prereleases = True
             if platform.python_version().rstrip('+') not in self._metadata.requires_python:
                 raise MesonBuilderError(
-                    f'Package requires Python version {self._metadata.requires_python}, '
+                    f'The package requires Python version {self._metadata.requires_python}, '
                     f'running on {platform.python_version()}')
 
         # limited API
@@ -757,6 +761,11 @@ class Project():
             value = next((option['value'] for option in options if option['name'] == 'python.allow_limited_api'), None)
             if not value:
                 self._limited_api = False
+
+        if self._limited_api and bool(sysconfig.get_config_var('Py_GIL_DISABLED')):
+            raise BuildError(
+                'The package targets Python\'s Limited API, which is not supported by free-threaded CPython. '
+                'The "python.allow_limited_api" Meson build option may be used to override the package default.')
 
     def _run(self, cmd: Sequence[str]) -> None:
         """Invoke a subprocess."""
@@ -812,7 +821,7 @@ class Project():
     def _info(self, name: str) -> Any:
         """Read info from meson-info directory."""
         info = self._build_dir.joinpath('meson-info', f'{name}.json')
-        return json.loads(info.read_text())
+        return json.loads(info.read_text(encoding='utf-8'))
 
     @property
     def _manifest(self) -> DefaultDict[str, List[Tuple[pathlib.Path, str]]]:
@@ -859,64 +868,77 @@ class Project():
 
     def sdist(self, directory: Path) -> pathlib.Path:
         """Generates a sdist (source distribution) in the specified directory."""
-        # generate meson dist file
+        # Generate meson dist file.
         self._run(self._meson + ['dist', '--allow-dirty', '--no-tests', '--formats', 'gztar', *self._meson_args['dist']])
 
-        # move meson dist file to output path
         dist_name = f'{self._metadata.distribution_name}-{self._metadata.version}'
         meson_dist_name = f'{self._meson_name}-{self._meson_version}'
         meson_dist_path = pathlib.Path(self._build_dir, 'meson-dist', f'{meson_dist_name}.tar.gz')
-        sdist = pathlib.Path(directory, f'{dist_name}.tar.gz')
+        sdist_path = pathlib.Path(directory, f'{dist_name}.tar.gz')
+        pyproject_toml_mtime = 0
 
-        with tarfile.open(meson_dist_path, 'r:gz') as meson_dist, mesonpy._util.create_targz(sdist) as tar:
+        with tarfile.open(meson_dist_path, 'r:gz') as meson_dist, mesonpy._util.create_targz(sdist_path) as sdist:
             for member in meson_dist.getmembers():
-                # calculate the file path in the source directory
-                assert member.name, member.name
-                member_parts = member.name.split('/')
-                if len(member_parts) <= 1:
-                    continue
-                path = self._source_dir.joinpath(*member_parts[1:])
-
-                if not path.exists() and member.isfile():
-                    # File doesn't exists on the source directory but exists on
-                    # the Meson dist, so it is generated file, which we need to
-                    # include.
-                    # See https://mesonbuild.com/Reference-manual_builtin_meson.html#mesonadd_dist_script
-
-                    # MESON_DIST_ROOT could have a different base name
-                    # than the actual sdist basename, so we need to rename here
+                if member.isfile():
                     file = meson_dist.extractfile(member.name)
-                    member.name = str(pathlib.Path(dist_name, *member_parts[1:]).as_posix())
-                    tar.addfile(member, file)
-                    continue
 
-                if not path.is_file():
-                    continue
+                    # Reset pax extended header.  The tar archive member may be
+                    # using pax headers to store some file metadata.  The pax
+                    # headers are not reset when the metadata is modified and
+                    # they take precedence when the member is deserialized.
+                    # This is relevant because when rewriting the member name,
+                    # the length of the path may shrink from being more than
+                    # 100 characters (requiring the path to be stored in the
+                    # pax headers) to being less than 100 characters. When this
+                    # happens, the tar archive member is serialized with the
+                    # shorter name in the regular header and the longer one in
+                    # the extended pax header.  The archives handled here are
+                    # not expected to use extended pax headers other than for
+                    # the ones required to encode file metadata.  The easiest
+                    # solution is to reset the pax extended headers.
+                    member.pax_headers = {}
 
-                info = tarfile.TarInfo(member.name)
-                file_stat = os.stat(path)
-                info.mtime = member.mtime
-                info.size = file_stat.st_size
-                info.mode = int(oct(file_stat.st_mode)[-3:], 8)
+                    # Rewrite the path to match the sdist distribution name.
+                    stem = member.name.split('/', 1)[1]
+                    member.name = '/'.join((dist_name, stem))
 
-                # rewrite the path if necessary, to match the sdist distribution name
-                if dist_name != meson_dist_name:
-                    info.name = pathlib.Path(
-                        dist_name,
-                        path.relative_to(self._source_dir)
-                    ).as_posix()
+                    if stem == 'pyproject.toml':
+                        pyproject_toml_mtime = member.mtime
 
-                with path.open('rb') as f:
-                    tar.addfile(info, fileobj=f)
+                    # Reset owner and group to root:root.  This mimics what
+                    # 'git archive' does and makes the sdist reproducible upon
+                    # being built by different users.
+                    member.uname = member.gname = 'root'
+                    member.uid = member.gid = 0
 
-            # add PKG-INFO to dist file to make it a sdist
-            pkginfo_info = tarfile.TarInfo(f'{dist_name}/PKG-INFO')
-            pkginfo_info.mtime = time.time()  # type: ignore[assignment]
+                    sdist.addfile(member, file)
+
+            # Add 'PKG-INFO'.
+            member = tarfile.TarInfo(f'{dist_name}/PKG-INFO')
+            member.uid = member.gid = 0
+            member.uname = member.gname = 'root'
+
+            # Set the 'PKG-INFO' modification time to the modification time of
+            # 'pyproject.toml' in the archive generated by 'meson dist'.  In
+            # turn this is the last commit time, unless touched by a dist
+            # script.  This makes the sdist reproducible upon being built at
+            # different times, when dist scripts are not used, which should be
+            # the majority of cases.
+            #
+            # Note that support for dynamic version in project metadata allows
+            # the version to depend on the build time.  Therefore, setting the
+            # 'PKG-INFO' modification time to the 'pyproject.toml'
+            # modification time can be seen as not strictly correct.  However,
+            # the sdist standard does not dictate which modification time to
+            # use for 'PKG-INFO'.  This choice allows to make the sdist
+            # byte-for-byte reproducible in the most common case.
+            member.mtime = pyproject_toml_mtime
+
             metadata = bytes(self._metadata.as_rfc822())
-            pkginfo_info.size = len(metadata)
-            tar.addfile(pkginfo_info, fileobj=io.BytesIO(metadata))
+            member.size = len(metadata)
+            sdist.addfile(member, io.BytesIO(metadata))
 
-        return sdist
+        return sdist_path
 
     def wheel(self, directory: Path) -> pathlib.Path:
         """Generates a wheel in the specified directory."""
@@ -970,6 +992,8 @@ def _get_meson_command(
     # directly. For packages that vendor a forked Meson, the `meson.py` in the
     # root of the Meson repo can be used this way.
     if meson.endswith('.py'):
+        if not os.path.exists(meson):
+            raise ConfigError(f'Could not find the specified meson: "{meson}"')
         cmd = [sys.executable, meson]
     else:
         cmd = [meson]
@@ -978,9 +1002,15 @@ def _get_meson_command(
     # package, however, it may occur that the meson Python package is installed
     # but the corresponding meson command is not available in $PATH. Implement
     # a runtime check to verify that the build environment is setup correcly.
-    required_version = _parse_version_string(version)
-    meson_version = subprocess.run(cmd + ['--version'], check=False, text=True, capture_output=True).stdout
-    if _parse_version_string(meson_version) < required_version:
+    try:
+        r = subprocess.run(cmd + ['--version'], text=True, capture_output=True)
+    except FileNotFoundError as err:
+        raise ConfigError(f'meson executable "{meson}" not found') from err
+    if r.returncode != 0:
+        raise ConfigError(f'Could not execute meson: {r.stderr.strip()}')
+    meson_version = r.stdout.strip()
+
+    if _parse_version_string(meson_version) < _parse_version_string(version):
         raise ConfigError(f'Could not find meson version {version} or newer, found {meson_version}.')
 
     return cmd
@@ -1085,11 +1115,7 @@ def build_editable(
     if not config_settings:
         config_settings = {}
     if 'build-dir' not in config_settings and 'builddir' not in config_settings:
-        build_dir = pathlib.Path('build')
-        build_dir.mkdir(exist_ok=True)
-        if not next(build_dir.iterdir(), None):
-            _add_ignore_files(build_dir)
-        config_settings['build-dir'] = os.fspath(build_dir / str(mesonpy._tags.get_abi_tag()))
+        config_settings['build-dir'] = 'build/' + mesonpy._tags.get_abi_tag()
 
     out = pathlib.Path(wheel_directory)
     with _project(config_settings) as project:
