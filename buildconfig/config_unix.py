@@ -17,7 +17,7 @@ else:
 if os.environ.get('LOCALBASE', ''):
     extrabases.append(os.environ['LOCALBASE'])
 
-extrabases.extend(("/usr", "/usr/local"))
+extrabases.extend(("/usr"))
 
 class DependencyProg:
     def __init__(self, name, envname, exename, minver, defaultlibs, version_flag="--version"):
@@ -54,7 +54,7 @@ class DependencyProg:
                 elif f[:3] == '-Wl':
                     self.cflags += '-Xlinker ' + f + ' '
             if self.name == 'SDL':
-                inc = '-I' + '/usr/X11R6/include'
+                inc = '-I' + '/usr/include'
                 self.cflags = inc + ' ' + self.cflags
         except (ValueError, TypeError):
             print(f'WARNING: "{command}" failed!')
@@ -140,8 +140,8 @@ def main(auto_config=False):
     global origincdirs, origlibdirs
 
     #these get prefixes with '/usr' and '/usr/local' or the $LOCALBASE
-    origincdirs = ['/include', '/include/SDL2']
-    origlibdirs = ['/lib', '/lib64', '/X11R6/lib']
+    origincdirs = ['/include']
+    origlibdirs = ['/lib']
 
     # If we are on a debian based system, we also need to handle
     # /lib/<multiarch-tuple>
