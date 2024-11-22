@@ -140,7 +140,7 @@ def main(auto_config=False):
     global origincdirs, origlibdirs
 
     #these get prefixes with '/usr' and '/usr/local' or the $LOCALBASE
-    origincdirs = ['/include', '/include/SDL2']
+    origincdirs = ['/include', '/include']
     origlibdirs = ['/lib', '/lib64', '/X11R6/lib']
 
     # If we are on a debian based system, we also need to handle
