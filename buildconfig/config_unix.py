@@ -40,8 +40,8 @@ class DependencyProg:
 
             # remove this GNU_SOURCE if there... since python has it already,
             #   it causes a warning.
-            if '-D_GNU_SOURCE=1' in flags:
-                flags.remove('-D_GNU_SOURCE=1')
+            if '-D_GNU_SOURCE' in flags:
+                flags.remove('-D_GNU_SOURCE')
             self.ver = config[0].strip()
             if minver and self.ver < minver:
                 err= f'WARNING: requires {self.name} version {self.ver} ({minver} found)'
