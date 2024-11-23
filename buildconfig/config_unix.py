@@ -8,16 +8,7 @@ from sysconfig import get_path
 
 configcommand = os.environ.get('SDL_CONFIG', 'sdl-config',)
 configcommand = configcommand + ' --version --cflags --libs'
-
-if os.environ.get('PYGAME_EXTRA_BASE', ''):
-    extrabases = os.environ['PYGAME_EXTRA_BASE'].split(':')
-else:
-    extrabases = []
-
-if os.environ.get('LOCALBASE', ''):
-    extrabases.append(os.environ['LOCALBASE'])
-
-extrabases.extend(("/usr", "/usr/local"))
+localbase = os.environ.get('LOCALBASE', '')
 
 class DependencyProg:
     def __init__(self, name, envname, exename, minver, defaultlibs, version_flag="--version"):
@@ -68,6 +59,39 @@ class DependencyProg:
             self.found = 1
         else:
             print(self.name + '        '[len(self.name):] + ': not found')
+
+class DependencyPkgConfig:
+    def __init__(self, name, lib):
+        self.name = name
+        self.lib_dir = ''
+        self.inc_dir = ''
+        self.libs = []
+        self.cflags = ''
+        command = os.environ.get('PKG_CONFIG', 'pkg-config')
+        try:
+            version = os.popen('%s %s --modversion 2> /dev/null' % (command, lib)).readline()
+            if not version.strip():
+                self.found = 0
+                return
+
+            cflags = os.popen('%s %s --cflags 2> /dev/null' % (command, lib)).readline()
+            libs = os.popen('%s %s --libs 2> /dev/null' % (command, lib)).readline()
+
+            self.ver = version
+            self.found = 1
+
+            self.cflags = '%s %s' % (cflags, libs)
+        except Exception, e:
+            print e
+            print ('WARNING: "pkg-config" failed!')
+            self.found = 0
+            self.ver = '0'
+
+    def configure(self, incdirs, libdir):
+        if self.found:
+            print (self.name + '        '[len(self.name):] + ': found ' + self.ver)
+        else:
+            print (self.name + '        '[len(self.name):] + ': not found')
 
 class Dependency:
     def __init__(self, name, checkhead, checklib, libs):
@@ -219,14 +243,14 @@ def main(auto_config=False):
         return pkg_config
 
     DEPS = [
-        DependencyProg('SDL', 'SDL_CONFIG', 'sdl2-config', '2.0', ['sdl']),
+        DependencyPkgConfig('SDL', 'sdl'),
         Dependency('FONT', 'SDL_ttf.h', 'libSDL2_ttf.so', ['SDL2_ttf']),
-        Dependency('IMAGE', 'SDL_image.h', 'libSDL2_image.so', ['SDL2_image']),
+        DependencyPkgConfig('IMAGE', 'SDL_image'),
         Dependency('MIXER', 'SDL_mixer.h', 'libSDL2_mixer.so', ['SDL2_mixer']),
         #Dependency('GFX', 'SDL_gfxPrimitives.h', 'libSDL2_gfx.so', ['SDL2_gfx']),
     ]
     DEPS.extend([
-        Dependency('PNG', 'png.h', 'libpng', ['png']),
+        DependencyPkgConfig('PNG', 'libpng'),
         Dependency('JPEG', 'jpeglib.h', 'libjpeg', ['jpeg']),
         Dependency('SCRAP', '', 'libX11', ['X11']),
         #Dependency('GFX', 'SDL_gfxPrimitives.h', 'libSDL_gfx.so', ['SDL_gfx']),
@@ -244,11 +268,12 @@ def main(auto_config=False):
     if not DEPS[0].found:
         raise RuntimeError('Unable to run "sdl-config". Please make sure a development version of SDL is installed.')
 
-    incdirs = []
-    libdirs = []
-    for extrabase in extrabases:
-        incdirs += [extrabase + d for d in origincdirs]
-        libdirs += [extrabase + d for d in origlibdirs]
+    if localbase:
+        incdirs = [localbase+d for d in origincdirs]
+        libdirs = [localbase+d for d in origlibdirs]
+    else:
+        incdirs = []
+        libdirs = []
 
     for arg in DEPS[0].cflags.split():
         if arg[:2] == '-I':
