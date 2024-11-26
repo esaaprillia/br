@@ -639,8 +639,8 @@ class Project():
         self._source_dir = pathlib.Path(source_dir).absolute()
         self._build_dir = pathlib.Path(build_dir).absolute()
         self._editable_verbose = editable_verbose
-        self._meson_native_file = self._build_dir / 'openwrt-native.txt'
-        self._meson_cross_file = self._build_dir / 'openwrt-cross.txt'
+        self._meson_native_file = self._build_dir / 'meson-python-native-file.ini'
+        self._meson_cross_file = self._build_dir / 'meson-python-cross-file.ini'
         self._meson_args: MesonArgs = collections.defaultdict(list)
         self._limited_api = False
 
@@ -776,6 +776,26 @@ class Project():
         r = subprocess.run(cmd, cwd=self._build_dir)
         if r.returncode != 0:
             raise SystemExit(r.returncode)
+
+    def _configure(self, reconfigure: bool = False) -> None:
+        """Configure Meson project."""
+        setup_args = [
+            os.fspath(self._source_dir),
+            os.fspath(self._build_dir),
+            # default build options
+            '-Dbuildtype=release',
+            '-Db_ndebug=if-release',
+            '-Db_vscrt=md',
+            # user build options
+            *self._meson_args['setup'],
+            # pass native file last to have it override the python
+            # interpreter path that may have been specified in user
+            # provided native files
+            f'--native-file={os.fspath(self._meson_native_file)}',
+        ]
+        if reconfigure:
+            setup_args.insert(0, '--reconfigure')
+        self._run(self._meson + ['setup', *setup_args])
 
     @property
     def _build_command(self) -> List[str]:
@@ -1100,4 +1120,3 @@ def build_editable(
     out = pathlib.Path(wheel_directory)
     with _project(config_settings) as project:
         return project.editable(out).name
-
