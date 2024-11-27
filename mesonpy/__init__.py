@@ -639,8 +639,8 @@ class Project():
         self._source_dir = pathlib.Path(source_dir).absolute()
         self._build_dir = pathlib.Path(build_dir).absolute()
         self._editable_verbose = editable_verbose
-        self._meson_native_file = self._build_dir / 'meson-python-native-file.ini'
-        self._meson_cross_file = self._build_dir / 'meson-python-cross-file.ini'
+        self._meson_native_file = self._build_dir / 'openwrt-native.txt'
+        self._meson_cross_file = self._build_dir / 'openwrt-cross.txt'
         self._meson_args: MesonArgs = collections.defaultdict(list)
         self._limited_api = False
 
@@ -792,6 +792,7 @@ class Project():
             # interpreter path that may have been specified in user
             # provided native files
             f'--native-file={os.fspath(self._meson_native_file)}',
+            f'--cross-file={os.fspath(self._meson_cross_file)}',
         ]
         if reconfigure:
             setup_args.insert(0, '--reconfigure')
