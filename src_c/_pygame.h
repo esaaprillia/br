@@ -26,13 +26,13 @@
 #ifndef _PYGAME_INTERNAL_H
 #define _PYGAME_INTERNAL_H
 
-#include "pgplatform.h"
 /*
     If PY_SSIZE_T_CLEAN is defined before including Python.h, length is a
     Py_ssize_t rather than an int for all # variants of formats (s#, y#, etc.)
 */
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include "pgplatform.h"
 
 /* Ensure PyPy-specific code is not in use when running on GraalPython (PR
  * #2580) */
