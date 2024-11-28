@@ -21,13 +21,6 @@
   pete@shinners.org
 */
 
-/*
- *  extended image module for pygame, note this only has
- *  the extended load and save functions, which are automatically used
- *  by the normal pygame.image module if it is available.
- */
-#include "pygame.h"
-
 /* Keep a stray macro from conflicting with python.h */
 #if defined(HAVE_PROTOTYPES)
 #undef HAVE_PROTOTYPES
@@ -39,6 +32,13 @@
 #if defined(HAVE_STDLIB_H) /* also defined in pygame.h (SDL.h) */
 #undef HAVE_STDLIB_H
 #endif
+
+/*
+ *  extended image module for pygame, note this only has
+ *  the extended load and save functions, which are automatically used
+ *  by the normal pygame.image module if it is available.
+ */
+#include "pygame.h"
 
 // PNG_SKIP_SETJMP_CHECK : non-regression on #662 (build error on old libpng)
 #define PNG_SKIP_SETJMP_CHECK
