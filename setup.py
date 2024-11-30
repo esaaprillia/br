@@ -52,7 +52,7 @@ if setup_configure.mpi_enabled():
 
 # Set the environment variable H5PY_SETUP_REQUIRES=0 if we need to skip
 # setup_requires for any reason.
-if os.environ.get('H5PY_SETUP_REQUIRES', '1') == '0':
+if os.environ.get('H5PY_SETUP_REQUIRES', '0') == '0':
     SETUP_REQUIRES = []
 
 # --- Custom Distutils commands -----------------------------------------------
