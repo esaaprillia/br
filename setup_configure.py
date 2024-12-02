@@ -260,7 +260,7 @@ class HDF5LibWrapper:
             default_path = 'cyghdf5-200.dll'
             regexp = re.compile(r'^cyghdf5-\d+.dll$')
         else:
-            default_path = 'libhdf5.so'
+            default_path = '/home/runner/work/mosdns/mosdns/sdk/staging_dir/target-aarch64_generic_musl/usr/lib/libhdf5.so'
             regexp = re.compile(r'^libhdf5.so')
 
         path = None
