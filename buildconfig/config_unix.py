@@ -8,7 +8,7 @@ from sysconfig import get_path
 
 configcommand = os.environ.get('SDL_CONFIG', 'sdl-config',)
 configcommand = configcommand + ' --version --cflags --libs'
-
+localbase = os.environ.get('LOCALBASE', '')
 if os.environ.get('PYGAME_EXTRA_BASE', ''):
     extrabases = os.environ['PYGAME_EXTRA_BASE'].split(':')
 else:
@@ -249,6 +249,9 @@ def main(auto_config=False):
     for extrabase in extrabases:
         incdirs += [extrabase + d for d in origincdirs]
         libdirs += [extrabase + d for d in origlibdirs]
+    if localbase:
+        incdirs = [localbase+d for d in origincdirs]
+        libdirs = [localbase+d for d in origlibdirs]
 
     for arg in DEPS[0].cflags.split():
         if arg[:2] == '-I':
