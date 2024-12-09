@@ -1,7 +1,7 @@
 [project]
-name = "standard-telnetlib"
+name = "standard-chunk"
 version = "3.13.0"
-description = "Standard library telnetlib redistribution. \"dead battery\"."
+description = "Standard library chunk redistribution. \"dead battery\"."
 keywords = ["stdlib"]
 authors = [
     { name = "Python Developers", email = "python-deadlib@youknowone.org" }
@@ -15,7 +15,7 @@ classifiers = [
 ]
 
 [tool.setuptools.packages]
-find = {include = ["telnetlib*"]}
+find = {include = ["chunk*"]}
 
 [project.urls]
 "Homepage" = "https://github.com/youknowone/python-deadlib"
