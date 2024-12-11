@@ -608,7 +608,7 @@ readline_set_completer_delims(PyObject *module, PyObject *string)
 
 /* _py_free_history_entry: Utility function to free a history entry. */
 
-#if defined(RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0500
+#if defined(HAVE_LIBREADLINE) && (RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0500
 
 /* Readline version >= 5.0 introduced a timestamp field into the history entry
    structure; this needs to be freed to avoid a memory leak.  This version of
@@ -1423,7 +1423,7 @@ readline_until_enter_or_signal(const char *prompt, int *signal)
             PyEval_SaveThread();
             if (s < 0) {
                 rl_free_line_state();
-#if defined(RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0700
+#if defined(HAVE_LIBREADLINE) && (RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0700
                 rl_callback_sigcleanup();
 #endif
                 rl_cleanup_after_signal();
