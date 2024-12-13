@@ -5,7 +5,7 @@
 
 #include "Python.h"
 #include "structmember.h"         // PyMemberDef
-#include "zlib-ng.h"
+#include <zlib-ng.h>
 #include "stdbool.h"
 #include "stdint.h"
 
