@@ -8,7 +8,7 @@ try:
     import pypandoc
     with open(path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = pypandoc.convert('README.md', 'rst')
-except (IOError, ImportError):
+except (IOError, ImportError,AttributeError):
     long_description = 'Check https://github.com/plizonczyk/noiseprotocol for readme.'
 
 setup(
