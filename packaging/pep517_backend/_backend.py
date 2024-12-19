@@ -343,7 +343,7 @@ def get_requires_for_build_wheel(
         )
 
     c_ext_build_deps = [] if is_pure_python_build else [
-        'Cython >= 3.0.0b3' if IS_PY3_12_PLUS  # Only Cython 3+ is compatible
+        'Cython' if IS_PY3_12_PLUS  # Only Cython 3+ is compatible
         else 'Cython',
     ]
 
