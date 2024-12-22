@@ -1,18 +1,17 @@
 # 
 # Generated from:
-# https://github.com/zopefoundation/meta/tree/master/config/c-code
+# https://github.com/zopefoundation/meta/tree/master/config/pure-python
 
 [build-system]
-requires = ["setuptools < 74"]
+requires = ["setuptools<74"]
 build-backend = "setuptools.build_meta"
 
 [tool.coverage.run]
 branch = true
-source = ["zope.interface"]
-relative_files = true
+source = ["RestrictedPython"]
 
 [tool.coverage.report]
-fail_under = 98
+fail_under = 97.9
 precision = 2
 ignore_errors = true
 show_missing = true
@@ -20,6 +19,3 @@ exclude_lines = ["pragma: no cover", "pragma: nocover", "except ImportError:", "
 
 [tool.coverage.html]
 directory = "parts/htmlcov"
-
-[tool.coverage.paths]
-source = ["src/", ".tox/*/lib/python*/site-packages/", ".tox/pypy*/site-packages/"]
