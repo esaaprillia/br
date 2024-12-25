@@ -2318,7 +2318,7 @@ tsi_result tsi_create_ssl_client_handshaker_factory_with_options(
                    << tsi_result_to_string(result);
         break;
       }
-#if TSI_OPENSSL_ALPN_SUPPORT
+
       CHECK(impl->alpn_protocol_list_length < UINT_MAX);
       if (SSL_CTX_set_alpn_protos(
               ssl_context, impl->alpn_protocol_list,
