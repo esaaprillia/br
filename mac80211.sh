@@ -576,7 +576,7 @@ mac80211_generate_mac() {
 	local phy="$1"
 	local id="${macidx:-0}"
 
-	wdev_tool "$phy$phy_suffix" get_macaddr id=$id num_global=$num_global_macaddr mbssid=${multiple_bssid:-0}
+	#wdev_tool "$phy$phy_suffix" get_macaddr id=$id num_global=$num_global_macaddr mbssid=${multiple_bssid:-0}
 }
 
 get_board_phy_name() (
@@ -1092,7 +1092,7 @@ mac80211_reset_config() {
 	hostapd_conf_file="/var/run/hostapd-$phy$vif_phy_suffix.conf"
 	ubus_call hostapd config_set '{ "phy": "'"$phy"'", "radio": '"$radio"', "config": "", "prev_config": "'"$hostapd_conf_file"'" }' > /dev/null
 	ubus_call wpa_supplicant config_set '{ "phy": "'"$phy"'", "radio": '"$radio"', "config": [] }' > /dev/null
-	wdev_tool "$phy$phy_suffix" set_config '{}'
+	#wdev_tool "$phy$phy_suffix" set_config '{}'
 }
 
 mac80211_set_suffix() {
@@ -1200,7 +1200,7 @@ drv_mac80211_setup() {
 	[ -x /usr/sbin/wpa_supplicant ] && wpa_supplicant_start "$phy" "$radio"
 
 	json_set_namespace wdev_uc prev
-	wdev_tool "$phy$phy_suffix" set_config "$(json_dump)" $active_ifnames
+	#wdev_tool "$phy$phy_suffix" set_config "$(json_dump)" $active_ifnames
 	json_set_namespace "$prev"
 
 	for_each_interface "ap sta adhoc mesh monitor" mac80211_set_vif_txpower
