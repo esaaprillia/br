@@ -543,7 +543,7 @@ mac80211_generate_mac() {
 	local phy="$1"
 	local id="${macidx:-0}"
 
-	wdev_tool "$phy" get_macaddr id=$id num_global=$num_global_macaddr mbssid=${multiple_bssid:-0}
+	#wdev_tool "$phy" get_macaddr id=$id num_global=$num_global_macaddr mbssid=${multiple_bssid:-0}
 }
 
 get_board_phy_name() (
@@ -1044,7 +1044,7 @@ mac80211_reset_config() {
 	hostapd_conf_file="/var/run/hostapd-$phy.conf"
 	ubus call hostapd config_set '{ "phy": "'"$phy"'", "config": "", "prev_config": "'"$hostapd_conf_file"'" }' > /dev/null
 	ubus call wpa_supplicant config_set '{ "phy": "'"$phy"'", "config": [] }' > /dev/null
-	wdev_tool "$phy" set_config '{}'
+	#wdev_tool "$phy" set_config '{}'
 }
 
 drv_mac80211_setup() {
@@ -1149,7 +1149,7 @@ drv_mac80211_setup() {
 	[ -x /usr/sbin/wpa_supplicant ] && wpa_supplicant_start "$phy"
 
 	json_set_namespace wdev_uc prev
-	wdev_tool "$phy" set_config "$(json_dump)" $active_ifnames
+	#wdev_tool "$phy" set_config "$(json_dump)" $active_ifnames
 	json_set_namespace "$prev"
 
 	for_each_interface "ap sta adhoc mesh monitor" mac80211_set_vif_txpower
@@ -1187,7 +1187,7 @@ drv_mac80211_teardown() {
 
 	for wdev in $(list_phy_interfaces "$phy"); do
 		ip link set dev "$wdev" down
-		iw dev "$wdev" del
+		#iw dev "$wdev" del
 	done
 }
 
