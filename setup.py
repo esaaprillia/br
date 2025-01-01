@@ -1,607 +1,543 @@
-# Copyright 2015 gRPC authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""A setup module for the GRPC Python package."""
-
-# NOTE(https://github.com/grpc/grpc/issues/24028): allow setuptools to monkey
-# patch distutils
-import setuptools  # isort:skip
-
-# Monkey Patch the unix compiler to accept ASM
-# files used by boring SSL.
-from distutils.unixccompiler import UnixCCompiler
-
-UnixCCompiler.src_extensions.append(".S")
-del UnixCCompiler
-
+import io
 import os
 import os.path
-import pathlib
-import platform
-import re
-import shlex
-import shutil
-import subprocess
-from subprocess import PIPE
 import sys
+import runpy
+import subprocess
+import re
 import sysconfig
-
-import _metadata
-from setuptools import Extension
-from setuptools.command import egg_info
-
-# Redirect the manifest template from MANIFEST.in to PYTHON-MANIFEST.in.
-egg_info.manifest_maker.template = "PYTHON-MANIFEST.in"
-
-PY3 = sys.version_info.major == 3
-PYTHON_STEM = os.path.join("src", "python", "grpcio")
-CORE_INCLUDE = (
-    "include",
-    ".",
-)
-ABSL_INCLUDE = (os.path.join("third_party", "abseil-cpp"),)
-ADDRESS_SORTING_INCLUDE = (
-    os.path.join("third_party", "address_sorting", "include"),
-)
-CARES_INCLUDE = (
-    os.path.join("third_party", "cares", "cares", "include"),
-    os.path.join("third_party", "cares"),
-    os.path.join("third_party", "cares", "cares"),
-)
-if "darwin" in sys.platform:
-    CARES_INCLUDE += (os.path.join("third_party", "cares", "config_darwin"),)
-if "freebsd" in sys.platform:
-    CARES_INCLUDE += (os.path.join("third_party", "cares", "config_freebsd"),)
-if "linux" in sys.platform:
-    CARES_INCLUDE += (os.path.join("third_party", "cares", "config_linux"),)
-if "openbsd" in sys.platform:
-    CARES_INCLUDE += (os.path.join("third_party", "cares", "config_openbsd"),)
-RE2_INCLUDE = (os.path.join("third_party", "re2"),)
-SSL_INCLUDE = (
-    os.path.join("third_party", "boringssl-with-bazel", "src", "include"),
-)
-UPB_INCLUDE = (os.path.join("third_party", "upb"),)
-UPB_GRPC_GENERATED_INCLUDE = (os.path.join("src", "core", "ext", "upb-gen"),)
-UPBDEFS_GRPC_GENERATED_INCLUDE = (
-    os.path.join("src", "core", "ext", "upbdefs-gen"),
-)
-UTF8_RANGE_INCLUDE = (os.path.join("third_party", "utf8_range"),)
-XXHASH_INCLUDE = (os.path.join("third_party", "xxhash"),)
-ZLIB_INCLUDE = (os.path.join("third_party", "zlib"),)
-README = os.path.join(PYTHON_STEM, "README.rst")
-
-# Ensure we're in the proper directory whether or not we're being used by pip.
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.abspath(PYTHON_STEM))
-
-# Break import-style to ensure we can actually find our in-repo dependencies.
-import _parallel_compile_patch
-import _spawn_patch
-import grpc_core_dependencies
-import python_version
-
-import commands
-import grpc_version
-
-_parallel_compile_patch.monkeypatch_compile_maybe()
-_spawn_patch.monkeypatch_spawn()
+import platform
+from skbuild import cmaker, setup
 
 
-LICENSE = "Apache License 2.0"
+def main():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-CLASSIFIERS = (
-    [
-        "Development Status :: 5 - Production/Stable",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
+    CI_BUILD = os.environ.get("CI_BUILD", "False")
+    is_CI_build = True if CI_BUILD == "1" else False
+    cmake_source_dir = "opencv"
+    minimum_supported_numpy = "1.13.3"
+    build_contrib = get_build_env_var_by_name("contrib")
+    build_headless = get_build_env_var_by_name("headless")
+    build_java = "ON" if get_build_env_var_by_name("java") else "OFF"
+    build_rolling = get_build_env_var_by_name("rolling")
+
+    install_requires = [
+        'numpy>=1.13.3; python_version<"3.7"',
+        'numpy>=1.17.0; python_version>="3.7"', # https://github.com/numpy/numpy/pull/13725
+        'numpy>=1.17.3; python_version>="3.8"',
+        'numpy>=1.19.3; python_version>="3.9"',
+        'numpy>=1.21.2; python_version>="3.10"',
+        'numpy>=1.19.3; python_version>="3.6" and platform_system=="Linux" and platform_machine=="aarch64"',
+        'numpy>=1.21.0; python_version<="3.9" and platform_system=="Darwin" and platform_machine=="arm64"',
+        'numpy>=1.21.4; python_version>="3.10" and platform_system=="Darwin"',
+        "numpy>=1.23.5; python_version>='3.11'",
+        "numpy>=1.26.0; python_version>='3.12'"
     ]
-    + [
-        f"Programming Language :: Python :: {x}"
-        for x in python_version.SUPPORTED_PYTHON_VERSIONS
-    ]
-    + ["License :: OSI Approved :: Apache Software License"]
-)
 
+    python_version = cmaker.CMaker.get_python_version()
+    python_lib_path = cmaker.CMaker.get_python_library(python_version) or ""
+    # HACK: For Scikit-build 0.17.3 and newer that returns None or empty sptring for PYTHON_LIBRARY in manylinux2014
+    # A small release related to PYTHON_LIBRARY handling changes in 0.17.2; scikit-build 0.17.3 returns an empty string from get_python_library if no Python library is present (like on manylinux), where 0.17.2 returned None, and previous versions returned a non-existent path. Note that adding REQUIRED to find_package(PythonLibs will fail, but it is incorrect (you must not link to libPython.so) and was really just injecting a non-existent path before.
+    # TODO: Remove the hack when the issue is handled correctly in main OpenCV CMake.
+    if python_lib_path == "":
+        python_lib_path = "libpython%sm.a" % python_version
+    python_lib_path = python_lib_path.replace("\\", "/")
 
-def _env_bool_value(env_name, default):
-    """Parses a bool option from an environment variable"""
-    return os.environ.get(env_name, default).upper() not in ["FALSE", "0", ""]
-
-
-BUILD_WITH_BORING_SSL_ASM = _env_bool_value(
-    "GRPC_BUILD_WITH_BORING_SSL_ASM", "True"
-)
-
-# Export this environment variable to override the platform variant that will
-# be chosen for boringssl assembly optimizations. This option is useful when
-# crosscompiling and the host platform as obtained by sysconfig.get_platform()
-# doesn't match the platform we are targetting.
-# Example value: "linux-aarch64"
-BUILD_OVERRIDE_BORING_SSL_ASM_PLATFORM = os.environ.get(
-    "GRPC_BUILD_OVERRIDE_BORING_SSL_ASM_PLATFORM", ""
-)
-
-# Environment variable to determine whether or not the Cython extension should
-# *use* Cython or use the generated C files. Note that this requires the C files
-# to have been generated by building first *with* Cython support. Even if this
-# is set to false, if the script detects that the generated `.c` file isn't
-# present, then it will still attempt to use Cython.
-BUILD_WITH_CYTHON = _env_bool_value("GRPC_PYTHON_BUILD_WITH_CYTHON", "False")
-
-# Export this variable to use the system installation of openssl. You need to
-# have the header files installed (in /usr/include/openssl) and during
-# runtime, the shared library must be installed
-BUILD_WITH_SYSTEM_OPENSSL = _env_bool_value(
-    "GRPC_PYTHON_BUILD_SYSTEM_OPENSSL", "False"
-)
-
-# Export this variable to use the system installation of zlib. You need to
-# have the header files installed (in /usr/include/) and during
-# runtime, the shared library must be installed
-BUILD_WITH_SYSTEM_ZLIB = _env_bool_value(
-    "GRPC_PYTHON_BUILD_SYSTEM_ZLIB", "False"
-)
-
-# Export this variable to use the system installation of cares. You need to
-# have the header files installed (in /usr/include/) and during
-# runtime, the shared library must be installed
-BUILD_WITH_SYSTEM_CARES = _env_bool_value(
-    "GRPC_PYTHON_BUILD_SYSTEM_CARES", "False"
-)
-
-# Export this variable to use the system installation of re2. You need to
-# have the header files installed (in /usr/include/re2) and during
-# runtime, the shared library must be installed
-BUILD_WITH_SYSTEM_RE2 = _env_bool_value("GRPC_PYTHON_BUILD_SYSTEM_RE2", "False")
-
-# Export this variable to use the system installation of abseil. You need to
-# have the header files installed (in /usr/include/absl) and during
-# runtime, the shared library must be installed
-BUILD_WITH_SYSTEM_ABSL = os.environ.get("GRPC_PYTHON_BUILD_SYSTEM_ABSL", False)
-
-# Export this variable to force building the python extension with a statically linked libstdc++.
-# At least on linux, this is normally not needed as we can build manylinux-compatible wheels on linux just fine
-# without statically linking libstdc++ (which leads to a slight increase in the wheel size).
-# This option is useful when crosscompiling wheels for aarch64 where
-# it's difficult to ensure that the crosscompilation toolchain has a high-enough version
-# of GCC (we require >=5.1) but still uses old-enough libstdc++ symbols.
-# TODO(jtattermusch): remove this workaround once issues with crosscompiler version are resolved.
-BUILD_WITH_STATIC_LIBSTDCXX = _env_bool_value(
-    "GRPC_PYTHON_BUILD_WITH_STATIC_LIBSTDCXX", "False"
-)
-
-# For local development use only: This skips building gRPC Core and its
-# dependencies, including protobuf and boringssl. This allows "incremental"
-# compilation by first building gRPC Core using make, then building only the
-# Python/Cython layers here.
-#
-# Note that this requires libboringssl.a in the libs/{dbg,opt}/ directory, which
-# may require configuring make to not use the system openssl implementation:
-#
-#    make HAS_SYSTEM_OPENSSL_ALPN=0
-#
-# TODO(ericgribkoff) Respect the BUILD_WITH_SYSTEM_* flags alongside this option
-USE_PREBUILT_GRPC_CORE = _env_bool_value(
-    "GRPC_PYTHON_USE_PREBUILT_GRPC_CORE", "False"
-)
-
-# Environment variable to determine whether or not to enable coverage analysis
-# in Cython modules.
-ENABLE_CYTHON_TRACING = _env_bool_value(
-    "GRPC_PYTHON_ENABLE_CYTHON_TRACING", "False"
-)
-
-# Environment variable specifying whether or not there's interest in setting up
-# documentation building.
-ENABLE_DOCUMENTATION_BUILD = _env_bool_value(
-    "GRPC_PYTHON_ENABLE_DOCUMENTATION_BUILD", "False"
-)
-
-
-def check_linker_need_libatomic():
-    """Test if linker on system needs libatomic."""
-    code_test = (
-        b"#include <atomic>\n"
-        + b"int main() { return std::atomic<int64_t>{}; }"
+    python_include_dir = cmaker.CMaker.get_python_include_dir(python_version).replace(
+        "\\", "/"
     )
-    cxx = shlex.split(os.environ.get("CXX", "c++"))
-    cpp_test = subprocess.Popen(
-        cxx + ["-x", "c++", "-std=c++14", "-"],
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-    )
-    cpp_test.communicate(input=code_test)
-    if cpp_test.returncode == 0:
-        return False
-    # Double-check to see if -latomic actually can solve the problem.
-    # https://github.com/grpc/grpc/issues/22491
-    cpp_test = subprocess.Popen(
-        cxx + ["-x", "c++", "-std=c++14", "-", "-latomic"],
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-    )
-    cpp_test.communicate(input=code_test)
-    return cpp_test.returncode == 0
 
+    if os.path.exists(".git"):
+        import pip._internal.vcs.git as git
 
-# There are some situations (like on Windows) where CC, CFLAGS, and LDFLAGS are
-# entirely ignored/dropped/forgotten by distutils and its Cygwin/MinGW support.
-# We use these environment variables to thus get around that without locking
-# ourselves in w.r.t. the multitude of operating systems this ought to build on.
-# We can also use these variables as a way to inject environment-specific
-# compiler/linker flags. We assume GCC-like compilers and/or MinGW as a
-# reasonable default.
-EXTRA_ENV_COMPILE_ARGS = os.environ.get("GRPC_PYTHON_CFLAGS", None)
-EXTRA_ENV_LINK_ARGS = os.environ.get("GRPC_PYTHON_LDFLAGS", None)
-if EXTRA_ENV_COMPILE_ARGS is None:
-    EXTRA_ENV_COMPILE_ARGS = ""
-    if "win32" in sys.platform:
-        # MSVC by defaults uses C++14 so C11 needs to be specified.
-        EXTRA_ENV_COMPILE_ARGS += " /std:c11"
-        # We need to statically link the C++ Runtime, only the C runtime is
-        # available dynamically
-        EXTRA_ENV_COMPILE_ARGS += " /MT"
-    elif "linux" in sys.platform:
-        # GCC by defaults uses C17 so only C++14 needs to be specified.
-        EXTRA_ENV_COMPILE_ARGS += " -std=c++14"
-        EXTRA_ENV_COMPILE_ARGS += (
-            " -fvisibility=hidden -fno-wrapv -fno-exceptions"
+        g = git.Git()  # NOTE: pip API's are internal, this has to be refactored
+
+        g.run_command(["submodule", "sync"])
+
+        if build_rolling:
+            g.run_command(
+                ["submodule", "update", "--init", "--recursive", "--remote", cmake_source_dir]
+            )
+
+            if build_contrib:
+                g.run_command(
+                    ["submodule", "update", "--init", "--recursive", "--remote", "opencv_contrib"]
+                )
+        else:
+            g.run_command(
+                ["submodule", "update", "--init", "--recursive", cmake_source_dir]
+            )
+
+            if build_contrib:
+                g.run_command(
+                    ["submodule", "update", "--init", "--recursive", "opencv_contrib"]
+                )
+
+    package_version, build_contrib, build_headless, build_rolling = get_and_set_info(
+        build_contrib, build_headless, build_rolling, is_CI_build
+    )
+
+    # https://stackoverflow.com/questions/1405913/python-32bit-or-64bit-mode
+    is64 = sys.maxsize > 2 ** 32
+
+    package_name = "opencv-python"
+
+    if build_contrib and not build_headless:
+        package_name = "opencv-contrib-python"
+
+    if build_contrib and build_headless:
+        package_name = "opencv-contrib-python-headless"
+
+    if build_headless and not build_contrib:
+        package_name = "opencv-python-headless"
+
+    if build_rolling:
+        package_name += "-rolling"
+
+    long_description = io.open("README.md", encoding="utf-8").read()
+
+    packages = ["cv2", "cv2.data"]
+
+    package_data = {
+        "cv2": ["*%s" % sysconfig.get_config_vars().get("SO"), "version.py"]
+        + (["*.dll"] if os.name == "nt" else [])
+        + ["LICENSE.txt", "LICENSE-3RD-PARTY.txt"],
+        "cv2.data": ["*.xml"],
+    }
+
+    # Files from CMake output to copy to package.
+    # Path regexes with forward slashes relative to CMake install dir.
+    rearrange_cmake_output_data = {
+        "cv2": (
+            [r"bin/opencv_videoio_ffmpeg\d{4}%s\.dll" % ("_64" if is64 else "")]
+            if os.name == "nt"
+            else []
         )
-    elif "darwin" in sys.platform:
-        # AppleClang by defaults uses C17 so only C++14 needs to be specified.
-        EXTRA_ENV_COMPILE_ARGS += " -std=c++14"
-        EXTRA_ENV_COMPILE_ARGS += (
-            " -stdlib=libc++ -fvisibility=hidden -fno-wrapv -fno-exceptions"
-            " -DHAVE_UNISTD_H"
+        +
+        (
+            [r"lib/libOrbbecSDK.dylib", r"lib/libOrbbecSDK.\d.\d.dylib", r"lib/libOrbbecSDK.\d.\d.\d.dylib"]
+            if platform.system() == "Darwin" and platform.machine() == "arm64"
+            else []
         )
-
-if EXTRA_ENV_LINK_ARGS is None:
-    EXTRA_ENV_LINK_ARGS = ""
-    if "linux" in sys.platform or "darwin" in sys.platform:
-        EXTRA_ENV_LINK_ARGS += " -lpthread"
-        if check_linker_need_libatomic():
-            EXTRA_ENV_LINK_ARGS += " -latomic"
-    if "linux" in sys.platform:
-        EXTRA_ENV_LINK_ARGS += " -static-libgcc"
-
-# Explicitly link Core Foundation framework for MacOS to ensure no symbol is
-# missing when compiled using package managers like Conda.
-if "darwin" in sys.platform:
-    EXTRA_ENV_LINK_ARGS += " -framework CoreFoundation"
-
-EXTRA_COMPILE_ARGS = shlex.split(EXTRA_ENV_COMPILE_ARGS)
-EXTRA_LINK_ARGS = shlex.split(EXTRA_ENV_LINK_ARGS)
-
-if BUILD_WITH_STATIC_LIBSTDCXX:
-    EXTRA_LINK_ARGS.append("-static-libstdc++")
-
-CYTHON_EXTENSION_PACKAGE_NAMES = ()
-
-CYTHON_EXTENSION_MODULE_NAMES = ("grpc._cython.cygrpc",)
-
-CYTHON_HELPER_C_FILES = ()
-
-CORE_C_FILES = tuple(grpc_core_dependencies.CORE_SOURCE_FILES)
-if "win32" in sys.platform:
-    CORE_C_FILES = filter(lambda x: "third_party/cares" not in x, CORE_C_FILES)
-
-if BUILD_WITH_SYSTEM_OPENSSL:
-    CORE_C_FILES = filter(
-        lambda x: "third_party/boringssl" not in x, CORE_C_FILES
-    )
-    CORE_C_FILES = filter(lambda x: "src/boringssl" not in x, CORE_C_FILES)
-    SSL_INCLUDE = (os.path.join("/usr", "include", "openssl"),)
-
-if BUILD_WITH_SYSTEM_ZLIB:
-    CORE_C_FILES = filter(lambda x: "third_party/zlib" not in x, CORE_C_FILES)
-    ZLIB_INCLUDE = (os.path.join("/usr", "include"),)
-
-if BUILD_WITH_SYSTEM_CARES:
-    CORE_C_FILES = filter(lambda x: "third_party/cares" not in x, CORE_C_FILES)
-    CARES_INCLUDE = (os.path.join("/usr", "include"),)
-
-if BUILD_WITH_SYSTEM_RE2:
-    CORE_C_FILES = filter(lambda x: "third_party/re2" not in x, CORE_C_FILES)
-    RE2_INCLUDE = (os.path.join("/usr", "include", "re2"),)
-
-if BUILD_WITH_SYSTEM_ABSL:
-    CORE_C_FILES = filter(
-        lambda x: "third_party/abseil-cpp" not in x, CORE_C_FILES
-    )
-    ABSL_INCLUDE = (os.path.join("/usr", "include"),)
-
-EXTENSION_INCLUDE_DIRECTORIES = (
-    (PYTHON_STEM,)
-    + CORE_INCLUDE
-    + ABSL_INCLUDE
-    + ADDRESS_SORTING_INCLUDE
-    + CARES_INCLUDE
-    + RE2_INCLUDE
-    + SSL_INCLUDE
-    + UPB_INCLUDE
-    + UPB_GRPC_GENERATED_INCLUDE
-    + UPBDEFS_GRPC_GENERATED_INCLUDE
-    + UTF8_RANGE_INCLUDE
-    + XXHASH_INCLUDE
-    + ZLIB_INCLUDE
-)
-
-EXTENSION_LIBRARIES = ()
-if "linux" in sys.platform:
-    EXTENSION_LIBRARIES += ("rt",)
-if not "win32" in sys.platform:
-    EXTENSION_LIBRARIES += ("m",)
-if "win32" in sys.platform:
-    EXTENSION_LIBRARIES += (
-        "advapi32",
-        "bcrypt",
-        "dbghelp",
-        "ws2_32",
-    )
-if BUILD_WITH_SYSTEM_OPENSSL:
-    EXTENSION_LIBRARIES += (
-        "ssl",
-        "crypto",
-    )
-if BUILD_WITH_SYSTEM_ZLIB:
-    EXTENSION_LIBRARIES += ("z",)
-if BUILD_WITH_SYSTEM_CARES:
-    EXTENSION_LIBRARIES += ("cares",)
-if BUILD_WITH_SYSTEM_RE2:
-    EXTENSION_LIBRARIES += ("re2",)
-if BUILD_WITH_SYSTEM_ABSL:
-    EXTENSION_LIBRARIES += tuple(
-        lib.stem[3:]
-        for lib in sorted(pathlib.Path("/usr").glob("lib*/libabsl_*.so"))
-    )
-
-DEFINE_MACROS = (("_WIN32_WINNT", 0x600),)
-asm_files = []
-
-
-# Quotes on Windows build macros are evaluated differently from other platforms,
-# so we must apply quotes asymmetrically in order to yield the proper result in
-# the binary.
-def _quote_build_define(argument):
-    if "win32" in sys.platform:
-        return '"\\"{}\\""'.format(argument)
-    return '"{}"'.format(argument)
-
-
-DEFINE_MACROS += (
-    ("GRPC_XDS_USER_AGENT_NAME_SUFFIX", _quote_build_define("Python")),
-    (
-        "GRPC_XDS_USER_AGENT_VERSION_SUFFIX",
-        _quote_build_define(_metadata.__version__),
-    ),
-)
-
-asm_key = ""
-if BUILD_WITH_BORING_SSL_ASM and not BUILD_WITH_SYSTEM_OPENSSL:
-    boringssl_asm_platform = (
-        BUILD_OVERRIDE_BORING_SSL_ASM_PLATFORM
-        if BUILD_OVERRIDE_BORING_SSL_ASM_PLATFORM
-        else sysconfig.get_platform()
-    )
-    if "i686" in boringssl_asm_platform:
-        print("Enabling SSE2 on %s platform" % boringssl_asm_platform)
-        EXTRA_COMPILE_ARGS.append("-msse2")
-    else:
-        print("SSE2 not enabled on %s platform" % boringssl_asm_platform)
-    # BoringSSL's gas-compatible assembly files are all internally conditioned
-    # by the preprocessor. Provided the platform has a gas-compatible assembler
-    # (i.e. not Windows), we can include the assembly files and let BoringSSL
-    # decide which ones should and shouldn't be used for the build.
-    if not boringssl_asm_platform.startswith("win"):
-        asm_key = "crypto_asm"
-    else:
-        print(
-            "ASM Builds for BoringSSL currently not supported on:",
-            boringssl_asm_platform,
-        )
-if asm_key:
-    asm_files = grpc_core_dependencies.ASM_SOURCE_FILES[asm_key]
-else:
-    DEFINE_MACROS += (("OPENSSL_NO_ASM", 1),)
-
-if "win32" in sys.platform:
-    # TODO(zyc): Re-enable c-ares on x64 and x86 windows after fixing the
-    # ares_library_init compilation issue
-    DEFINE_MACROS += (
-        ("WIN32_LEAN_AND_MEAN", 1),
-        ("CARES_STATICLIB", 1),
-        ("GRPC_ARES", 0),
-        ("NTDDI_VERSION", 0x06000000),
-        ("NOMINMAX", 1),
-    )
-    if "64bit" in platform.architecture()[0]:
-        DEFINE_MACROS += (("MS_WIN64", 1),)
-    elif sys.version_info >= (3, 5):
-        # For some reason, this is needed to get access to inet_pton/inet_ntop
-        # on msvc, but only for 32 bits
-        DEFINE_MACROS += (("NTDDI_VERSION", 0x06000000),)
-else:
-    DEFINE_MACROS += (
-        ("HAVE_CONFIG_H", 1),
-        ("GRPC_ENABLE_FORK_SUPPORT", 1),
-    )
-
-# Fix for multiprocessing support on Apple devices.
-# TODO(vigneshbabu): Remove this once the poll poller gets fork support.
-DEFINE_MACROS += (("GRPC_DO_NOT_INSTANTIATE_POSIX_POLLER", 1),)
-
-# Fix for Cython build issue in aarch64.
-# It's required to define this macro before include <inttypes.h>.
-# <inttypes.h> was included in core/telemetry/call_tracer.h.
-# This macro should already be defined in grpc/grpc.h through port_platform.h,
-# but we're still having issue in aarch64, so we manually define the macro here.
-# TODO(xuanwn): Figure out what's going on in the aarch64 build so we can support
-# gcc + Bazel.
-DEFINE_MACROS += (("__STDC_FORMAT_MACROS", None),)
-
-LDFLAGS = tuple(EXTRA_LINK_ARGS)
-CFLAGS = tuple(EXTRA_COMPILE_ARGS)
-if "linux" in sys.platform or "darwin" in sys.platform:
-    pymodinit_type = "PyObject*" if PY3 else "void"
-    pymodinit = 'extern "C" __attribute__((visibility ("default"))) {}'.format(
-        pymodinit_type
-    )
-    DEFINE_MACROS += (("PyMODINIT_FUNC", pymodinit),)
-    DEFINE_MACROS += (("GRPC_POSIX_FORK_ALLOW_PTHREAD_ATFORK", 1),)
-
-
-def cython_extensions_and_necessity():
-    cython_module_files = [
-        os.path.join(PYTHON_STEM, name.replace(".", "/") + ".pyx")
-        for name in CYTHON_EXTENSION_MODULE_NAMES
-    ]
-    config = os.environ.get("CONFIG", "opt")
-    prefix = "libs/" + config + "/"
-    if USE_PREBUILT_GRPC_CORE:
-        extra_objects = [
-            prefix + "libares.a",
-            prefix + "libboringssl.a",
-            prefix + "libgpr.a",
-            prefix + "libgrpc.a",
+        +
+        # In Windows, in python/X.Y/<arch>/; in Linux, in just python/X.Y/.
+        # Naming conventions vary so widely between versions and OSes
+        # had to give up on checking them.
+        [
+            r"python/cv2/python-%s/cv2.*"
+            % (sys.version_info[0])
         ]
-        core_c_files = []
-    else:
-        core_c_files = list(CORE_C_FILES)
-        extra_objects = []
-    extensions = [
-        Extension(
-            name=module_name,
-            sources=(
-                [module_file]
-                + list(CYTHON_HELPER_C_FILES)
-                + core_c_files
-                + asm_files
-            ),
-            include_dirs=list(EXTENSION_INCLUDE_DIRECTORIES),
-            libraries=list(EXTENSION_LIBRARIES),
-            define_macros=list(DEFINE_MACROS),
-            extra_objects=extra_objects,
-            extra_compile_args=list(CFLAGS),
-            extra_link_args=list(LDFLAGS),
-        )
-        for (module_name, module_file) in zip(
-            list(CYTHON_EXTENSION_MODULE_NAMES), cython_module_files
-        )
-    ]
-    need_cython = BUILD_WITH_CYTHON
-    if not BUILD_WITH_CYTHON:
-        need_cython = (
-            need_cython
-            or not commands.check_and_update_cythonization(extensions)
-        )
-    # TODO: the strategy for conditional compiling and exposing the aio Cython
-    # dependencies will be revisited by https://github.com/grpc/grpc/issues/19728
-    return (
-        commands.try_cythonize(
-            extensions,
-            linetracing=ENABLE_CYTHON_TRACING,
-            mandatory=BUILD_WITH_CYTHON,
-        ),
-        need_cython,
+        +
+        [
+            r"python/cv2/__init__.py"
+        ]
+        +
+        [
+            r"python/cv2/.*config.*.py"
+        ]
+        +
+        [ r"python/cv2/py.typed" ] if sys.version_info >= (3, 6) else []
+        ,
+        "cv2.data": [  # OPENCV_OTHER_INSTALL_PATH
+            ("etc" if os.name == "nt" else "share/opencv4") + r"/haarcascades/.*\.xml"
+        ],
+        "cv2.gapi": [
+            "python/cv2" + r"/gapi/.*\.py"
+        ],
+        "cv2.mat_wrapper": [
+            "python/cv2" + r"/mat_wrapper/.*\.py"
+        ],
+        "cv2.misc": [
+            "python/cv2" + r"/misc/.*\.py"
+        ],
+        "cv2.utils": [
+            "python/cv2" + r"/utils/.*\.py"
+        ],
+    }
+
+    if sys.version_info >= (3, 6):
+        rearrange_cmake_output_data["cv2.typing"] = ["python/cv2" + r"/typing/.*\.py"]
+
+    # Files in sourcetree outside package dir that should be copied to package.
+    # Raw paths relative to sourcetree root.
+    files_outside_package_dir = {"cv2": ["LICENSE.txt", "LICENSE-3RD-PARTY.txt"]}
+
+    ci_cmake_generator = (
+        ["-G", "Visual Studio 14" + (" Win64" if is64 else "")]
+        if os.name == "nt"
+        else ["-G", "Unix Makefiles"]
     )
 
-
-CYTHON_EXTENSION_MODULES, need_cython = cython_extensions_and_necessity()
-
-PACKAGE_DIRECTORIES = {
-    "": PYTHON_STEM,
-}
-
-INSTALL_REQUIRES = ()
-
-EXTRAS_REQUIRES = {
-    "protobuf": "grpcio-tools>={version}".format(version=grpc_version.VERSION),
-}
-
-SETUP_REQUIRES = (
-    INSTALL_REQUIRES + ("Sphinx~=1.8.1",) if ENABLE_DOCUMENTATION_BUILD else ()
-)
-
-try:
-    import Cython
-except ImportError:
-    if BUILD_WITH_CYTHON:
-        sys.stderr.write(
-            "You requested a Cython build via GRPC_PYTHON_BUILD_WITH_CYTHON, "
-            "but do not have Cython installed. We won't stop you from using "
-            "other commands, but the extension files will fail to build.\n"
+    cmake_args = (
+        (ci_cmake_generator if is_CI_build else [])
+        + [
+            # skbuild inserts PYTHON_* vars. That doesn't satisfy opencv build scripts in case of Py3
+            "-DPYTHON3_EXECUTABLE=%s" % sys.executable,
+            "-DPYTHON_DEFAULT_EXECUTABLE=%s" % sys.executable,
+            "-DPYTHON3_INCLUDE_DIR=%s" % python_include_dir,
+            "-DPYTHON3_LIBRARY=%s" % python_lib_path,
+            "-DBUILD_opencv_python3=ON",
+            "-DBUILD_opencv_python2=OFF",
+            # Disable the Java build by default as it is not needed
+            "-DBUILD_opencv_java=%s" % build_java,
+            # Relative dir to install the built module to in the build tree.
+            # The default is generated from sysconfig, we'd rather have a constant for simplicity
+            "-DOPENCV_PYTHON3_INSTALL_PATH=python",
+            # Otherwise, opencv scripts would want to install `.pyd' right into site-packages,
+            # and skbuild bails out on seeing that
+            "-DINSTALL_CREATE_DISTRIB=ON",
+            # See opencv/CMakeLists.txt for options and defaults
+            "-DBUILD_opencv_apps=OFF",
+            "-DBUILD_opencv_freetype=OFF",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DBUILD_TESTS=OFF",
+            "-DBUILD_PERF_TESTS=OFF",
+            "-DBUILD_DOCS=OFF",
+            "-DPYTHON3_LIMITED_API=ON",
+            "-DBUILD_OPENEXR=ON",
+        ]
+        + (
+            # CMake flags for windows/arm64 build
+            ["-DCMAKE_GENERATOR_PLATFORM=ARM64",
+             # Emulated cmake requires following flags to correctly detect
+             # target architecture for windows/arm64 build
+             "-DOPENCV_WORKAROUND_CMAKE_20989=ON",
+             "-DCMAKE_SYSTEM_PROCESSOR=ARM64"]
+            if platform.machine() == "ARM64" and sys.platform == "win32"
+            # If it is not defined 'linker flags: /machine:X86' on Windows x64
+            else ["-DCMAKE_GENERATOR_PLATFORM=x64"] if is64 and sys.platform == "win32"
+            else []
+          )
+        + (
+            ["-DOPENCV_EXTRA_MODULES_PATH=" + os.path.abspath("opencv_contrib/modules")]
+            if build_contrib
+            else []
         )
-    elif need_cython:
-        sys.stderr.write(
-            "We could not find Cython. Setup may take 10-20 minutes.\n"
+    )
+
+    if build_headless:
+        # it seems that cocoa cannot be disabled so on macOS the package is not truly headless
+        cmake_args.append("-DWITH_WIN32UI=OFF")
+        cmake_args.append("-DWITH_QT=OFF")
+        cmake_args.append("-DWITH_GTK=OFF")
+        if is_CI_build:
+            cmake_args.append(
+                "-DWITH_MSMF=OFF"
+            )  # see: https://github.com/skvark/opencv-python/issues/263
+
+    if sys.platform.startswith("linux") and not is64 and "bdist_wheel" in sys.argv:
+        subprocess.check_call("patch -p0 < patches/patchOpenEXR", shell=True)
+
+    # OS-specific components during CI builds
+    if is_CI_build:
+
+        if (
+            not build_headless
+            and "bdist_wheel" in sys.argv
+            and sys.platform.startswith("linux")
+        ):
+            cmake_args.append("-DWITH_QT=5")
+            subprocess.check_call("patch -p1 < patches/patchQtPlugins", shell=True)
+
+            if sys.platform.startswith("linux"):
+                rearrange_cmake_output_data["cv2.qt.plugins.platforms"] = [
+                    (r"lib/qt/plugins/platforms/libqxcb\.so")
+                ]
+
+                # add fonts for Qt5
+                fonts = []
+                for file in os.listdir("/usr/share/fonts/dejavu"):
+                    if file.endswith(".ttf"):
+                        fonts.append(
+                            (r"lib/qt/fonts/dejavu/%s\.ttf" % file.split(".")[0])
+                        )
+
+                rearrange_cmake_output_data["cv2.qt.fonts"] = fonts
+
+            if sys.platform == "darwin":
+                rearrange_cmake_output_data["cv2.qt.plugins.platforms"] = [
+                    (r"lib/qt/plugins/platforms/libqcocoa\.dylib")
+                ]
+
+        if sys.platform.startswith("linux"):
+            cmake_args.append("-DWITH_V4L=ON")
+            cmake_args.append("-DWITH_LAPACK=ON")
+            cmake_args.append("-DENABLE_PRECOMPILED_HEADERS=OFF")
+
+    # works via side effect
+    RearrangeCMakeOutput(
+        rearrange_cmake_output_data, files_outside_package_dir, package_data.keys()
+    )
+
+    setup(
+        name=package_name,
+        version=package_version,
+        url="https://github.com/opencv/opencv-python",
+        license="Apache 2.0",
+        description="Wrapper package for OpenCV python bindings.",
+        long_description=long_description,
+        long_description_content_type="text/markdown",
+        packages=packages,
+        package_data=package_data,
+        maintainer="OpenCV Team",
+        ext_modules=EmptyListWithLength(),
+        install_requires=install_requires,
+        python_requires=">=3.6",
+        classifiers=[
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Information Technology",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Operating System :: MacOS",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX",
+            "Operating System :: Unix",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3 :: Only",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: C++",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Image Recognition",
+            "Topic :: Software Development",
+        ],
+        cmake_args=cmake_args,
+        cmake_source_dir=cmake_source_dir,
+    )
+
+    print("OpenCV is raising funds to keep the library free for everyone, and we need the support of the entire community to do it. Donate to OpenCV on GitHub:\nhttps://github.com/sponsors/opencv\n")
+
+class RearrangeCMakeOutput:
+    """
+        Patch SKBuild logic to only take files related to the Python package
+        and construct a file hierarchy that SKBuild expects (see below)
+    """
+
+    _setuptools_wrap = None
+
+    # Have to wrap a function reference, or it's converted
+    # into an instance method on attr assignment
+    import argparse
+
+    wraps = argparse.Namespace(_classify_installed_files=None)
+    del argparse
+
+    package_paths_re = None
+    packages = None
+    files_outside_package = None
+
+    def __init__(self, package_paths_re, files_outside_package, packages):
+        cls = self.__class__
+        assert not cls.wraps._classify_installed_files, "Singleton object"
+        import skbuild.setuptools_wrap
+
+        cls._setuptools_wrap = skbuild.setuptools_wrap
+        cls.wraps._classify_installed_files = (
+            cls._setuptools_wrap._classify_installed_files
         )
-        SETUP_REQUIRES += ("cython>=3.0.0",)
+        cls._setuptools_wrap._classify_installed_files = (
+            self._classify_installed_files_override
+        )
 
-COMMAND_CLASS = {
-    "doc": commands.SphinxDocumentation,
-    "build_project_metadata": commands.BuildProjectMetadata,
-    "build_py": commands.BuildPy,
-    "build_ext": commands.BuildExt,
-    "gather": commands.Gather,
-    "clean": commands.Clean,
-}
+        cls.package_paths_re = package_paths_re
+        cls.files_outside_package = files_outside_package
+        cls.packages = packages
 
-# Ensure that package data is copied over before any commands have been run:
-credentials_dir = os.path.join(PYTHON_STEM, "grpc", "_cython", "_credentials")
-try:
-    os.mkdir(credentials_dir)
-except OSError:
-    pass
-shutil.copyfile(
-    os.path.join("etc", "roots.pem"), os.path.join(credentials_dir, "roots.pem")
-)
+    def __del__(self):
+        cls = self.__class__
+        cls._setuptools_wrap._classify_installed_files = (
+            cls.wraps._classify_installed_files
+        )
+        cls.wraps._classify_installed_files = None
+        cls._setuptools_wrap = None
 
-PACKAGE_DATA = {
-    # Binaries that may or may not be present in the final installation, but are
-    # mentioned here for completeness.
-    "grpc._cython": [
-        "_credentials/roots.pem",
-        "_windows/grpc_c.32.python",
-        "_windows/grpc_c.64.python",
-    ],
-}
-PACKAGES = setuptools.find_packages(PYTHON_STEM)
+    def _classify_installed_files_override(
+        self,
+        install_paths,
+        package_data,
+        package_prefixes,
+        py_modules,
+        new_py_modules,
+        scripts,
+        new_scripts,
+        data_files,
+        cmake_source_dir,
+        cmake_install_reldir,
+    ):
+        """
+            From all CMake output, we're only interested in a few files
+            and must place them into CMake install dir according
+            to Python conventions for SKBuild to find them:
+                package\
+                    file
+                    subpackage\
+                        etc.
+        """
 
-setuptools.setup(
-    name="grpcio",
-    version=grpc_version.VERSION,
-    description="HTTP/2-based RPC framework",
-    author="The gRPC Authors",
-    author_email="grpc-io@googlegroups.com",
-    url="https://grpc.io",
-    project_urls={
-        "Source Code": "https://github.com/grpc/grpc",
-        "Bug Tracker": "https://github.com/grpc/grpc/issues",
-        "Documentation": "https://grpc.github.io/grpc/python",
-    },
-    license=LICENSE,
-    classifiers=CLASSIFIERS,
-    long_description_content_type="text/x-rst",
-    long_description=open(README).read(),
-    ext_modules=CYTHON_EXTENSION_MODULES,
-    packages=list(PACKAGES),
-    package_dir=PACKAGE_DIRECTORIES,
-    package_data=PACKAGE_DATA,
-    python_requires=f">={python_version.MIN_PYTHON_VERSION}",
-    install_requires=INSTALL_REQUIRES,
-    extras_require=EXTRAS_REQUIRES,
-    setup_requires=SETUP_REQUIRES,
-    cmdclass=COMMAND_CLASS,
-)
+        cls = self.__class__
+
+        # 'relpath'/'reldir' = relative to CMAKE_INSTALL_DIR/cmake_install_dir
+        # 'path'/'dir' = relative to sourcetree root
+        cmake_install_dir = os.path.join(
+            cls._setuptools_wrap.CMAKE_INSTALL_DIR(), cmake_install_reldir
+        )
+        install_relpaths = [
+            os.path.relpath(p, cmake_install_dir) for p in install_paths
+        ]
+        fslash_install_relpaths = [
+            p.replace(os.path.sep, "/") for p in install_relpaths
+        ]
+        relpaths_zip = list(zip(fslash_install_relpaths, install_relpaths))
+
+        final_install_relpaths = []
+
+        print("Copying files from CMake output")
+
+        # add lines from the old __init__.py file to the config file
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts', '__init__.py'), 'r') as custom_init:
+            custom_init_data = custom_init.read()
+
+        # OpenCV generates config with different name for case with PYTHON3_LIMITED_API=ON
+        config_py = os.path.join(cmake_install_dir, 'python', 'cv2', 'config-%s.%s.py'
+                                 % (sys.version_info[0], sys.version_info[1]))
+        if not os.path.exists(config_py):
+            config_py = os.path.join(cmake_install_dir, 'python', 'cv2', 'config-%s.py' % sys.version_info[0])
+
+        with open(config_py, 'w') as opencv_init_config:
+            opencv_init_config.write(custom_init_data)
+
+        if sys.version_info >= (3, 6):
+            for p in install_relpaths:
+                if p.endswith(".pyi"):
+                    target_rel_path = os.path.relpath(p, "python/cv2")
+                    cls._setuptools_wrap._copy_file(
+                        os.path.join(cmake_install_dir, p),
+                        os.path.join(cmake_install_dir, "cv2", target_rel_path),
+                        hide_listing=False,
+                    )
+                    final_install_relpaths.append(os.path.join("cv2", target_rel_path))
+
+        del install_relpaths, fslash_install_relpaths
+
+        for package_name, relpaths_re in cls.package_paths_re.items():
+            package_dest_reldir = package_name.replace(".", os.path.sep)
+            for relpath_re in relpaths_re:
+                found = False
+                r = re.compile(relpath_re + "$")
+                for fslash_relpath, relpath in relpaths_zip:
+                    m = r.match(fslash_relpath)
+                    if not m:
+                        continue
+                    found = True
+                    new_install_relpath = os.path.join(
+                        package_dest_reldir, os.path.basename(relpath)
+                    )
+                    cls._setuptools_wrap._copy_file(
+                        os.path.join(cmake_install_dir, relpath),
+                        os.path.join(cmake_install_dir, new_install_relpath),
+                        hide_listing=False,
+                    )
+                    final_install_relpaths.append(new_install_relpath)
+                    del m, fslash_relpath, new_install_relpath
+                else:
+                    # gapi can be missed if ADE was not downloaded (network issue)
+                    if not found and "gapi" not in relpath_re:
+                        raise Exception("Not found: '%s'" % relpath_re)
+                del r, found
+
+        del relpaths_zip
+
+        print("Copying files from non-default sourcetree locations")
+
+        for package_name, paths in cls.files_outside_package.items():
+            package_dest_reldir = package_name.replace(".", os.path.sep)
+            for path in paths:
+                new_install_relpath = os.path.join(
+                    package_dest_reldir,
+                    # Don't yet have a need to copy
+                    # to subdirectories of package dir
+                    os.path.basename(path),
+                )
+                cls._setuptools_wrap._copy_file(
+                    path,
+                    os.path.join(cmake_install_dir, new_install_relpath),
+                    hide_listing=False,
+                )
+                final_install_relpaths.append(new_install_relpath)
+
+        final_install_paths = [
+            os.path.join(cmake_install_dir, p) for p in final_install_relpaths
+        ]
+
+        return (cls.wraps._classify_installed_files)(
+            final_install_paths,
+            package_data,
+            package_prefixes,
+            py_modules,
+            new_py_modules,
+            scripts,
+            new_scripts,
+            data_files,
+            # To get around a check that prepends source dir to paths and breaks package detection code.
+            cmake_source_dir="",
+            _cmake_install_dir=cmake_install_reldir,
+        )
+
+
+def get_and_set_info(contrib, headless, rolling, ci_build):
+    # cv2/version.py should be generated by running find_version.py
+    version = {}
+    here = os.path.abspath(os.path.dirname(__file__))
+    version_file = os.path.join(here, "cv2", "version.py")
+
+    # generate a fresh version.py always when Git repository exists
+    # (in sdists the version.py file already exists)
+    if os.path.exists(".git"):
+        old_args = sys.argv.copy()
+        sys.argv = ["", str(contrib), str(headless), str(rolling), str(ci_build)]
+        runpy.run_path("find_version.py", run_name="__main__")
+        sys.argv = old_args
+
+    with open(version_file) as fp:
+        exec(fp.read(), version)
+
+    return version["opencv_version"], version["contrib"], version["headless"], version["rolling"]
+
+
+def get_build_env_var_by_name(flag_name):
+    flag_set = False
+
+    try:
+        flag_set = bool(int(os.getenv("ENABLE_" + flag_name.upper(), None)))
+    except Exception:
+        pass
+
+    if not flag_set:
+        try:
+            flag_set = bool(int(open(flag_name + ".enabled").read(1)))
+        except Exception:
+            pass
+
+    return flag_set
+
+
+# This creates a list which is empty but returns a length of 1.
+# Should make the wheel a binary distribution and platlib compliant.
+class EmptyListWithLength(list):
+    def __len__(self):
+        return 1
+
+
+if __name__ == "__main__":
+    main()
