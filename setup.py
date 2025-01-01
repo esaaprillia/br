@@ -183,7 +183,7 @@ def main():
             "-DBUILD_opencv_java=%s" % build_java,
             # Relative dir to install the built module to in the build tree.
             # The default is generated from sysconfig, we'd rather have a constant for simplicity
-            "-DOPENCV_PYTHON3_INSTALL_PATH=python",
+            # "-DOPENCV_PYTHON3_INSTALL_PATH=python",
             # Otherwise, opencv scripts would want to install `.pyd' right into site-packages,
             # and skbuild bails out on seeing that
             "-DINSTALL_CREATE_DISTRIB=ON",
