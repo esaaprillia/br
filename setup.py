@@ -17,7 +17,7 @@ import os
 if '' not in sys.path:
     sys.path.insert(0, '')
 
-import setup_build, setup_configure
+#import setup_build, setup_configure
 
 
 VERSION = '3.12.1'
