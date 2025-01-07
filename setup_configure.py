@@ -144,8 +144,8 @@ class BuildConfig:
 
         # Specified a prefix dir (e.g. '/usr/local')
         if hdf5:
-            inc_dirs = [op.join(hdf5, 'include')]
-            lib_dirs = [op.join(hdf5, 'lib')]
+            inc_dirs = [op.join(hdf5, '@STAGING_DIR@')]
+            lib_dirs = [op.join(hdf5, '@STAGING_DIR@')]
             if sys.platform.startswith('win'):
                 lib_dirs.append(op.join(hdf5, 'bin'))
             return (inc_dirs, lib_dirs, [])
