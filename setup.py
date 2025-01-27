@@ -18,6 +18,7 @@ class prepare_tinydtls(build_ext):
 
         commands =  [
                     ["sh", "-c", "./autogen.sh"],
+                    ["sed", "-i", "-e", "s,cross_compiling=no,cross_compiling=yes,", "configure"],
                     ["sh", "-c", "./configure"], # no --without-ecc
                     ]
         if not os.path.exists(os.path.join(os.path.dirname(__file__), 'DTLSSocket','tinydtls','dtls.c')):
