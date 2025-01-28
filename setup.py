@@ -1,72 +1,58 @@
-import os.path
-import subprocess
-import sys
-
 from setuptools import setup
-from setuptools.extension import Extension
-from setuptools.command.build_ext import build_ext
+from setuptools import find_packages
 
-class prepare_tinydtls(build_ext):
-    def run(self):
-        def run_command(args):
-            print("Running:", " ".join(args))
-            try:
-                subprocess.check_call(args, cwd=os.path.join(os.path.dirname(__file__), "DTLSSocket","tinydtls"))
-            except Exception as e:
-                print(f"Trying to run {args[0]} failed, please make sure {args[0]} is installed")
-                sys.exit(1)
+version = '0.0.3'
 
-        commands =  [
-                    ["sh", "-c", "./autogen.sh"],
-                    ["sh", "-c", "./configure"], # no --without-ecc
-                    ]
-        if not os.path.exists(os.path.join(os.path.dirname(__file__), 'DTLSSocket','tinydtls','dtls.c')):
-            run_command(["git", "submodule", "update", "--init"])
-        for command in commands:
-            run_command(command)
-        build_ext.run(self)
+install_requires = [
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+]
+
+dev_extras = [
+    'pep8',
+    'tox',
+    'pypandoc',
+]
+
+docs_extras = [
+    'Sphinx>=1.0',  # autodoc_member_order = 'bysource', autodoc_default_flags
+    'sphinx_rtd_theme',
+    'sphinxcontrib-programoutput',
+]
+
+
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')
+    long_description = long_description.replace("\r", '')
+
+except(IOError, ImportError):
+    import io
+    with io.open('README.md', encoding='utf-8') as f:
+        long_description = f.read()
 
 setup(
-    name="DTLSSocket",
-    version='0.2.2',
-    description = "DTLSSocket is a cython wrapper for tinydtls with a Socket like interface",
+    name='chacha20poly1305',
+    version=version,
+    description='Chacha20Poly1305',
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    author      = "Jannis Konrad",
-    author_email= "Kabel42@gmail.com",
-    url         = "https://git.fslab.de/jkonra2m/tinydtls-cython",
-    classifiers = ["License :: OSI Approved :: Eclipse Public License 1.0 (EPL-1.0)",],
-    py_modules  = [ "DTLSSocket.DTLSSocket"],
-    cmdclass    = {"build_ext": prepare_tinydtls},
-    ext_modules = [Extension("DTLSSocket.dtls",
-                [
-                 "DTLSSocket/dtls.pyx",
-                 "DTLSSocket/tinydtls/ccm.c",
-                 "DTLSSocket/tinydtls/crypto.c",
-                 "DTLSSocket/tinydtls/dtls.c",
-                 "DTLSSocket/tinydtls/dtls_debug.c",
-                 "DTLSSocket/tinydtls/ecc/ecc.c",
-                 "DTLSSocket/tinydtls/dtls_time.c",
-                 "DTLSSocket/tinydtls/hmac.c",
-                 "DTLSSocket/tinydtls/netq.c",
-                 "DTLSSocket/tinydtls/peer.c",
-                 "DTLSSocket/tinydtls/session.c",
-                 "DTLSSocket/tinydtls/aes/rijndael.c",
-                 "DTLSSocket/tinydtls/aes/rijndael_wrap.c",
-                 "DTLSSocket/tinydtls/sha2/sha2.c",
-                 "DTLSSocket/tinydtls/platform-specific/dtls_prng_posix.c",
-                 ],
-                include_dirs=['DTLSSocket/tinydtls'],
-                define_macros=[('DTLSv12', '1'),
-                               ('WITH_SHA256', '1'),
-                               ('DTLS_CHECK_CONTENTTYPE', '1'),
-                               ('_GNU_SOURCE', '1'),
-                                ('NDEBUG', '1'),
-                                ('uint8_t', 'u_int8_t'),
-                              ],
-#                undef_macros = [ "NDEBUG" ],
-                ),]
-    )
+    url='https://github.com/ph4r05/py-chacha20poly1305',
+    author='Dusan Klinec',
+    author_email='dusan.klinec@gmail.com',
+    license='LGPL',
+    classifiers=[
+        'Intended Audience :: Developers',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Topic :: Security',
+    ],
+
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=install_requires,
+    extras_require={
+        'dev': dev_extras,
+        'docs': docs_extras,
+    },
+)
