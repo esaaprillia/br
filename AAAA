@@ -28,6 +28,7 @@ PKG_LICENSE_FILES:=	COPYING					\
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/meson.mk
 
 define Package/util-linux/Default
@@ -571,6 +572,79 @@ define Package/wipefs/description
  libblkid.
 endef
 
+MESON_HOST_ARGS += \
+	-Dsystemd=disabled \
+	-Dtinfo=disabled \
+	-Dcryptsetup=disabled \
+	-Dlibutil=disabled \
+	-Dlibutempter=disabled \
+	-Dlibpcre2-posix=disabled \
+	-Dlibuser=disabled \
+	-Duse-tty-group=false \
+	-Duse-tls=false \
+	-Dbuild-python=disabled \
+	-Dbuild-zramctl=disabled \
+	-Dbuild-fsck=disabled \
+	-Dbuild-wipefs=disabled \
+	-Dbuild-fallocate=disabled \
+	-Dbuild-setpriv=disabled \
+	-Dbuild-hardlink=disabled \
+	-Dbuild-cramfs=disabled \
+	-Dbuild-bfs=disabled \
+	-Dbuild-minix=disabled \
+	-Dbuild-fdformat=disabled \
+	-Dbuild-lslogins=disabled \
+	-Dbuild-wdctl=disabled \
+	-Dbuild-cal=disabled \
+	-Dbuild-switch_root=disabled \
+	-Dbuild-pivot_root=disabled \
+	-Dbuild-lsmem=disabled \
+	-Dbuild-lsirq=disabled \
+	-Dbuild-irqtop=disabled \
+	-Dbuild-chmem=disabled \
+	-Dbuild-ipcrm=disabled \
+	-Dbuild-rfkill=disabled \
+	-Dbuild-tunelp=disabled \
+	-Dbuild-kill=disabled \
+	-Dbuild-last=disabled \
+	-Dbuild-utmpdump=disabled \
+	-Dbuild-line=disabled \
+	-Dbuild-mesg=disabled \
+	-Dbuild-raw=disabled \
+	-Dbuild-vipw=disabled \
+	-Dbuild-newgrp=disabled \
+	-Dbuild-chfn-chsh=disabled \
+	-Dbuild-login=disabled \
+	-Dbuild-nologin=disabled \
+	-Dbuild-sulogin=disabled \
+	-Dbuild-su=disabled \
+	-Dbuild-runuser=disabled \
+	-Dbuild-ul=disabled \
+	-Dbuild-pg=disabled \
+	-Dbuild-write=disabled \
+	-Dbuild-bash-completion=disabled \
+	-Dbuild-pylibmount=disabled \
+	-Dbuild-liblastlog2=disabled \
+	-Dbuild-more=disabled \
+	-Dbuild-fdisks=disabled \
+	-Dbuild-setterm=disabled \
+	-Dbuild-agetty=disabled \
+	-Dbuild-plymouth-support=disabled \
+	-Dbuild-libblkid=disabled \
+	-Dbuild-libmount=disabled \
+	-Dbuild-mount=disabled \
+	-Dbuild-mountpoint=disabled \
+	-Dbuild-partx=disabled \
+	-Dbuild-rename=disabled \
+	-Dbuild-schedutils=disabled \
+	-Dbuild-unshare=disabled \
+	-Dbuild-uuidd=disabled \
+	-Dbuild-wall=disabled \
+	-Dbuild-libsmartcols=disabled \
+	-Dreadline=disabled \
+	-Dmagic=disabled \
+	-Dncursesw=disabled
+
 MESON_ARGS += \
 	-Dsystemd=disabled \
 	-Dtinfo=disabled \
@@ -627,6 +701,11 @@ MESON_ARGS += \
 	-Dreadline=disabled \
 	-Dmagic=disabled \
 	-Dncursesw=enabled
+
+define Host/Install
+	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/include
+	$(CP) $(HOST_BUILD_DIR)/libuuid/src/uuid.h $(STAGING_DIR_HOSTPKG)/include/
+endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
@@ -952,3 +1031,5 @@ $(eval $(call BuildPackage,uuidgen))
 $(eval $(call BuildPackage,wall))
 $(eval $(call BuildPackage,whereis))
 $(eval $(call BuildPackage,wipefs))
+$(eval $(call HostBuild))
+
