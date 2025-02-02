@@ -206,7 +206,7 @@ def autodetect_version(hdf5_dir=None):
         default_path = 'libhdf5.so'
         regexp = re.compile(r'^libhdf5.so')
 
-    libdirs = ['/usr/local/lib', '/opt/local/lib']
+    libdirs = ['@STAGING_DIR@/usr/lib']
     try:
         if pkgconfig.exists("hdf5"):
             libdirs.extend(pkgconfig.parse("hdf5")['library_dirs'])
