@@ -56,8 +56,8 @@ if sys.platform.startswith('win'):
         ('H5_BUILT_AS_DYNAMIC_LIB', None)
     ])
 else:
-    FALLBACK_PATHS['include_dirs'].extend(['/opt/local/include', '/usr/local/include'])
-    FALLBACK_PATHS['library_dirs'].extend(['/opt/local/lib', '/usr/local/lib'])
+    FALLBACK_PATHS['include_dirs'].extend(['@STAGING_DIR@/usr/include'])
+    FALLBACK_PATHS['library_dirs'].extend(['@STAGING_DIR@/usr/lib'])
 
 
 class h5py_build_ext(build_ext):
