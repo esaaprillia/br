@@ -286,10 +286,8 @@ class HDF5LibWrapper:
             raise FileNotFoundError(f"{path} is missing")
 
         try:
-            lib = ctypes.CDLL(path, **load_kw)
+            lib = ctypes.CDLL(path)
         except Exception:
-            print("error: Unable to load dependency HDF5, make sure HDF5 is installed properly")
-            print(f"on {sys.platform=} with {platform.machine()=}")
             print("Library dirs checked:", libdirs)
             raise
 
