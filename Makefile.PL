@@ -161,11 +161,11 @@ foreach my $delegate (@tested_delegates) {
 }
 
 # defaults for LIBS & INC & CCFLAGS params that we later pass to Writemakefile
-my $INC_magick = '-I/usr/local/include/ImageMagick-7 -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16 -I/usr/include/libxml2 -I"' . $Config{'usrinc'} . '/ImageMagick-7"';
-my $LIBS_magick = '-L/usr/local/lib -lMagickCore-7.Q16HDRI -lm -L' . $Config{'archlib'} . '/CORE';
-my $CCFLAGS_magick = "$Config{'ccflags'} -I/usr/include/freetype2 -g -O2 -Wall -pthread -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16";
-my $LDFLAGS_magick   = "-L/usr/local/lib -lMagickCore-7.Q16HDRI $Config{'ldflags'} ";
-my $LDDLFLAGS_magick = "-L/usr/local/lib -lMagickCore-7.Q16HDRI $Config{'lddlflags'} ";
+my $INC_magick = '-I@STAGING_DIR@/include/ImageMagick-7 -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16 -I@STAGING_DIR@/include/libxml2 -I"' . $Config{'usrinc'} . '/ImageMagick-7"';
+my $LIBS_magick = '-L@STAGING_DIR@/lib -lMagickCore-7.Q16HDRI -lm -L' . $Config{'archlib'} . '/CORE';
+my $CCFLAGS_magick = "$Config{'ccflags'} -I@STAGING_DIR@/include/freetype2 -g -O2 -Wall -pthread -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16";
+my $LDFLAGS_magick   = "-L@STAGING_DIR@/lib -lMagickCore-7.Q16HDRI $Config{'ldflags'} ";
+my $LDDLFLAGS_magick = "-L@STAGING_DIR@/lib -lMagickCore-7.Q16HDRI $Config{'lddlflags'} ";
 
 if (($^O eq 'MSWin32') && ($Config{cc} =~ /gcc/)) {
   my($Ipaths, $Lpaths) = AutodetectWin32gcc();
