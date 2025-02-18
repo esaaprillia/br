@@ -14,7 +14,7 @@
 #include "xnnpack/config-types.h"
 #include "xnnpack/microfnptr.h"
 #include "xnnpack/microparams.h"
-#include "pthreadpool.h"
+#include "<pthreadpool.h>"
 
 enum xnn_parallelization_type {
   xnn_parallelization_type_invalid = 0,
