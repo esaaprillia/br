@@ -17,21 +17,6 @@ if(TARGET cpuinfo OR cpuinfo_POPULATED)
   return()
 endif()
 
-include(OverridableFetchContent)
-
-OverridableFetchContent_Declare(
-  cpuinfo
-  GIT_REPOSITORY https://github.com/pytorch/cpuinfo
-  # Sync with tensorflow/workspace2.bzl
-  GIT_TAG fa1c679da8d19e1d87f20175ae1ec10995cd3dd3
-  GIT_PROGRESS TRUE
-  SOURCE_DIR "${CMAKE_BINARY_DIR}/cpuinfo"
-)
-OverridableFetchContent_GetProperties(cpuinfo)
-if(NOT cpuinfo_POPULATED)
-  OverridableFetchContent_Populate(cpuinfo)
-endif()
-
 set(CPUINFO_SOURCE_DIR "${cpuinfo_SOURCE_DIR}" CACHE PATH "CPUINFO source directory")
 set(CPUINFO_BUILD_TOOLS OFF CACHE BOOL "Disable cpuinfo command-line tools")
 set(CPUINFO_BUILD_UNIT_TESTS OFF CACHE BOOL "Disable cpuinfo unit tests")
