@@ -51,7 +51,6 @@ list(APPEND TFLITE_BENCHMARK_LIBS
   feature_proto
   example_proto
   model_runtime_info_proto
-  protobuf::libprotobuf
 )
 
 # TODO(b/171007016): Enable performance options on Windows.
