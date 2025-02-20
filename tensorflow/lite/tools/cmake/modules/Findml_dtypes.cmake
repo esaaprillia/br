@@ -18,11 +18,8 @@
 
 include(ml_dtypes)
 if(ml_dtypes_POPULATED)
-  get_target_property(ML_DTYPES_INCLUDE_DIRS ml_dtypes INTERFACE_DIRECTORIES)
 endif()
 
 if(ml_dtypes_FOUND OR ml_dtypes_POPULATED)
   set(ML_DTYPES_FOUND TRUE)
-  add_library(ml_dtypes::ml_dtypes ALIAS ml_dtypes)
-  set(ML_DTYPES_LIBRARIES ml_dtypes::ml_dtypes)
 endif()
