@@ -530,7 +530,6 @@ if(TFLITE_ENABLE_XNNPACK)
   )
   target_link_libraries(xnnpack-delegate
     Eigen3::Eigen
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ruy::ruy
     )
