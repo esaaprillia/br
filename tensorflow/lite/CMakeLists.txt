@@ -525,12 +525,11 @@ if(TFLITE_ENABLE_XNNPACK)
     "${PROJECT_BINARY_DIR}/tensorflow/lite/delegates/xnnpack/weight_cache_schema_generated.h"
   )
   target_include_directories(xnnpack-delegate
-    PUBLIC $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE "${PROJECT_BINARY_DIR}"
+    "$<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>" "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    "${PROJECT_BINARY_DIR}"
   )
   target_link_libraries(xnnpack-delegate
     Eigen3::Eigen
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ruy::ruy
     )
@@ -703,7 +702,7 @@ add_library(tensorflow-lite
 set(_ALL_TFLITE_HDRS ${_ALL_TFLITE_SRCS})
 list(FILTER _ALL_TFLITE_HDRS INCLUDE REGEX ".*\\.h$")
 target_include_directories(tensorflow-lite
-  PUBLIC $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  "$<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>" "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 target_link_libraries(tensorflow-lite
   PUBLIC
@@ -716,7 +715,6 @@ target_link_libraries(tensorflow-lite
     absl::variant
     farmhash
     fft2d_fftsg2d
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ml_dtypes
     ruy::ruy
