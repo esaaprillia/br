@@ -530,7 +530,6 @@ if(TFLITE_ENABLE_XNNPACK)
   )
   target_link_libraries(xnnpack-delegate
     Eigen3::Eigen
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ruy::ruy
     )
@@ -542,7 +541,6 @@ if(TFLITE_ENABLE_XNNPACK)
   )
 
   list(APPEND TFLITE_TARGET_DEPENDENCIES
-    xnnpack-delegate
     XNNPACK
   )
   list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DTFLITE_BUILD_WITH_XNNPACK_DELEGATE")
@@ -716,7 +714,6 @@ target_link_libraries(tensorflow-lite
     absl::variant
     farmhash
     fft2d_fftsg2d
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ml_dtypes
     ruy::ruy
