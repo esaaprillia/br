@@ -84,7 +84,7 @@ TFL_CAPI_EXPORT bool TfLiteXNNPackDelegateCanUseInMemoryWeightCacheProvider();
 TFL_CAPI_EXPORT const char* TfLiteXNNPackDelegateInMemoryFilePath();
 
 // Returns a structure with the default XNNPack delegate options.
-TFL_CAPI_EXPORT TfLiteXNNPackDelegateOptions
+TfLiteXNNPackDelegateOptions
 TfLiteXNNPackDelegateOptionsDefault();
 
 // Creates a new delegate instance that need to be destroyed with
@@ -92,7 +92,7 @@ TfLiteXNNPackDelegateOptionsDefault();
 // When `options` is set to `nullptr`, default values are used (see
 // implementation of TfLiteXNNPackDelegateOptionsDefault in the .cc file for
 // details).
-TFL_CAPI_EXPORT TfLiteDelegate* TfLiteXNNPackDelegateCreate(
+TfLiteDelegate* TfLiteXNNPackDelegateCreate(
     const TfLiteXNNPackDelegateOptions* options);
 
 // Performs the same task as TfLiteXNNPackDelegateCreate, with one exception.
@@ -105,7 +105,7 @@ TfLiteDelegate* TfLiteXNNPackDelegateCreateWithThreadpool(
 // Can return NULL if the XNNPack delegate is single-threaded.
 //
 // WARNING: This API is experimental and subject to change.
-TFL_CAPI_EXPORT void* TfLiteXNNPackDelegateGetThreadPool(
+void* TfLiteXNNPackDelegateGetThreadPool(
     TfLiteDelegate* delegate);
 
 // Returns the options in the delegate.
@@ -122,7 +122,7 @@ TfLiteXNNPackDelegateGetOptions(TfLiteDelegate* delegate);
 TFL_CAPI_EXPORT int TfLiteXNNPackDelegateGetFlags(TfLiteDelegate* delegate);
 
 // Destroys a delegate created with `TfLiteXNNPackDelegateCreate` call.
-TFL_CAPI_EXPORT void TfLiteXNNPackDelegateDelete(TfLiteDelegate* delegate);
+void TfLiteXNNPackDelegateDelete(TfLiteDelegate* delegate);
 
 // Creates a new weights cache that can be shared with multiple delegate
 // instances. Prefer TfLiteXNNPackDelegateWeightsCacheCreateWithSize which can
