@@ -98,7 +98,7 @@ TFL_CAPI_EXPORT TfLiteDelegate* TfLiteXNNPackDelegateCreate(
 // Performs the same task as TfLiteXNNPackDelegateCreate, with one exception.
 // If the context passed contains a non-null xnnpack_threadpool field,
 // we will use it as the threadpool for the delegate created.
-TfLiteDelegate* TfLiteXNNPackDelegateCreateWithThreadpool(
+TFL_CAPI_EXPORT TfLiteDelegate* TfLiteXNNPackDelegateCreateWithThreadpool(
     const TfLiteXNNPackDelegateOptions* options, TfLiteContext* context);
 
 // Returns the pthreadpool_t object used for parallelization in XNNPACK.
