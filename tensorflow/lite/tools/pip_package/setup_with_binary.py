@@ -24,13 +24,11 @@ import os
 
 from setuptools import find_packages
 from setuptools import setup
-PACKAGE_NAME = os.environ['PROJECT_NAME']
-PACKAGE_VERSION = os.environ['PACKAGE_VERSION']
 DOCLINES = __doc__.split('\n')
 
 setup(
-    name=PACKAGE_NAME.replace('_', '-'),
-    version=PACKAGE_VERSION,
+    name=tflite_runtime,
+    version=2.18.0,
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     url='https://www.tensorflow.org/lite/',
