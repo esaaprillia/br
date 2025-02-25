@@ -530,7 +530,6 @@ if(TFLITE_ENABLE_XNNPACK)
   )
   target_link_libraries(xnnpack-delegate
     Eigen3::Eigen
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ruy::ruy
     )
@@ -716,7 +715,6 @@ target_link_libraries(tensorflow-lite
     absl::variant
     farmhash
     fft2d_fftsg2d
-    flatbuffers::flatbuffers
     gemmlowp::gemmlowp
     ml_dtypes
     ruy::ruy
@@ -810,6 +808,9 @@ set_target_properties(_pywrap_tensorflow_interpreter_wrapper PROPERTIES PREFIX "
 target_include_directories(_pywrap_tensorflow_interpreter_wrapper
   PUBLIC
     ${TENSORFLOW_SOURCE_DIR}
+    ${PYTHON_INCLUDE}
+    ${PYBIND11_INCLUDE}
+    ${NUMPY_INCLUDE}
 )
 
 target_link_libraries(_pywrap_tensorflow_interpreter_wrapper
