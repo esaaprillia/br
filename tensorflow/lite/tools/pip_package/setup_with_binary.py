@@ -24,8 +24,8 @@ import os
 
 from setuptools import find_packages
 from setuptools import setup
-PACKAGE_NAME = os.environ['PROJECT_NAME']
-PACKAGE_VERSION = os.environ['PACKAGE_VERSION']
+PACKAGE_NAME = os.environ['tflite_runtime']
+PACKAGE_VERSION = os.environ['2.18.0']
 DOCLINES = __doc__.split('\n')
 
 setup(
