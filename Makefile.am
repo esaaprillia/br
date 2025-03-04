@@ -396,8 +396,8 @@ EXTRA_DIST += $(filter-out phsource/phonemes.stamp,$(PHSOURCE)) \
 phsource/phonemes.stamp: \
 	$(PHSOURCE) \
 	src/espeak-ng
-	ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-intonations && \
-		ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-phonemes && \
+	ESPEAK_DATA_PATH=$(CURDIR) /usr/bin/espeak-ng --compile-intonations && \
+		ESPEAK_DATA_PATH=$(CURDIR) /usr/bin/espeak-ng --compile-phonemes && \
 		touch $@
 
 ##### android targets:
@@ -437,10 +437,10 @@ dictsource/%_extra:
 # (at the cost of a spurious error message.)
 #
 # NOTE: keep in sync with 'espeak-ng-data/yue_dict' more specific rule.
-espeak-ng-data/%_dict: src/espeak-ng phsource/phonemes.stamp
+espeak-ng-data/%_dict: /usr/bin/espeak-ng phsource/phonemes.stamp
 	@echo "  DICT      $@"
 	rm -f $@
-	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) ../src/espeak-ng --compile="$(*F)"
+	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) /usr/bin/espeak-ng --compile="$(*F)"
 
 dictionaries: \
 	espeak-ng-data/af_dict \
@@ -951,13 +951,13 @@ dictsource/yue_listx:
 
 # NOTE: keep in sync with espeak-ng-data/%_dict more generic rule.
 if HAVE_YUE_EXTENDED_DICTIONARY
-espeak-ng-data/yue_dict: src/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_listx dictsource/yue_emoji
+espeak-ng-data/yue_dict: /usr/bin/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_listx dictsource/yue_emoji
 else
-espeak-ng-data/yue_dict: src/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_emoji
+espeak-ng-data/yue_dict: /usr/bin/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_emoji
 endif
 	@echo "  DICT      $@"
 	rm -f $@
-	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) LD_LIBRARY_PATH=../src:${LD_LIBRARY_PATH} ../src/espeak-ng --compile=yue && cd ..
+	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) LD_LIBRARY_PATH=../src:${LD_LIBRARY_PATH} /usr/bin/espeak-ng --compile=yue && cd ..
 
 dictsource/yue_emoji:
 	@echo "  EMOJI     $@"
@@ -979,7 +979,7 @@ mbrola: \
 
 espeak-ng-data/mbrola_ph/%_phtrans: phsource/mbrola/% src/espeak-ng
 	mkdir -p espeak-ng-data/mbrola_ph
-	ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-mbrola=phsource/mbrola/$*
+	ESPEAK_DATA_PATH=$(CURDIR) /usr/bin/espeak-ng --compile-mbrola=phsource/mbrola/$*
 
 EXTRA_DIST += $(PHSOURCE_MBROLA)
 
