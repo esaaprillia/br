@@ -396,8 +396,8 @@ EXTRA_DIST += $(filter-out phsource/phonemes.stamp,$(PHSOURCE)) \
 phsource/phonemes.stamp: \
 	$(PHSOURCE) \
 	src/espeak-ng
-	ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-intonations && \
-		ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-phonemes && \
+	ESPEAK_DATA_PATH=$(CURDIR) $(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile-intonations && \
+		ESPEAK_DATA_PATH=$(CURDIR) $(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile-phonemes && \
 		touch $@
 
 ##### android targets:
@@ -440,7 +440,7 @@ dictsource/%_extra:
 espeak-ng-data/%_dict: src/espeak-ng phsource/phonemes.stamp
 	@echo "  DICT      $@"
 	rm -f $@
-	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) ../src/espeak-ng --compile="$(*F)"
+	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) ../$(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile="$(*F)"
 
 dictionaries: \
 	espeak-ng-data/af_dict \
@@ -957,7 +957,7 @@ espeak-ng-data/yue_dict: src/espeak-ng phsource/phonemes.stamp dictsource/yue_li
 endif
 	@echo "  DICT      $@"
 	rm -f $@
-	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) LD_LIBRARY_PATH=../src:${LD_LIBRARY_PATH} ../src/espeak-ng --compile=yue && cd ..
+	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) LD_LIBRARY_PATH=../src:${LD_LIBRARY_PATH} ../$(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile=yue && cd ..
 
 dictsource/yue_emoji:
 	@echo "  EMOJI     $@"
@@ -979,7 +979,7 @@ mbrola: \
 
 espeak-ng-data/mbrola_ph/%_phtrans: phsource/mbrola/% src/espeak-ng
 	mkdir -p espeak-ng-data/mbrola_ph
-	ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-mbrola=phsource/mbrola/$*
+	ESPEAK_DATA_PATH=$(CURDIR) $(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile-mbrola=phsource/mbrola/$*
 
 EXTRA_DIST += $(PHSOURCE_MBROLA)
 
