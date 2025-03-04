@@ -25,10 +25,17 @@ from .util import is_mingw
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 # These are needed in a couple of spots, so just compute them once.
-PREFIX = os.path.normpath(sys.prefix)
-EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
-BASE_PREFIX = os.path.normpath(sys.base_prefix)
-BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
+if "_python_sysroot" in os.environ:
+    _sysroot=os.environ.get('_python_sysroot')
+    _PREFIX = os.path.normpath(_sysroot + os.environ.get('_python_prefix'))
+    _EXEC_PREFIX = os.path.normpath(_sysroot + os.environ.get('_python_exec_prefix'))
+    _BASE_PREFIX = _PREFIX
+    _BASE_EXEC_PREFIX = _EXEC_PREFIX
+else:
+    _PREFIX = os.path.normpath(sys.prefix)
+    _EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
+    _BASE_PREFIX = os.path.normpath(sys.base_prefix)
+    _BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
 
 # Path to the base directory of the project. On Windows the binary may
 # live in project/PCbuild/win32 or project/PCbuild/amd64.
