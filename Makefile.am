@@ -108,7 +108,7 @@ EXTRA_DIST += $(vim_addons_syntax_DATA)
 
 ##### documentation:
 
-src/espeak-ng.1: src/espeak-ng.1.ronn
+$(STAGING_DIR_HOSTPKG)/bin/espeak-ng.1: $(STAGING_DIR_HOSTPKG)/bin/espeak-ng.1.ronn
 	$(RONN) --roff -o $(shell dirname $@) $<
 
 src/speak-ng.1: src/speak-ng.1.ronn
@@ -118,12 +118,12 @@ docs_MARKDOWN = $(wildcard docs/*.md) $(wildcard docs/*/*.md) $(wildcard docs/*/
 docs_HTML = ${docs_MARKDOWN:.md=.html}
 
 docs:	$(docs_HTML) \
-	src/espeak-ng.1.html \
+	$(STAGING_DIR_HOSTPKG)/bin/espeak-ng.1.html \
 	src/speak-ng.1.html \
 	ChangeLog.html \
 	README.html
 
-EXTRA_DIST += src/espeak-ng.1.ronn src/speak-ng.1.ronn $(docs_MARKDOWN)
+EXTRA_DIST += $(STAGING_DIR_HOSTPKG)/bin/espeak-ng.1.ronn src/speak-ng.1.ronn $(docs_MARKDOWN)
 
 ##### build targets:
 
@@ -265,14 +265,14 @@ src_speak_ng_LDADD   = src/libespeak-ng.la
 src_speak_ng_LDFLAGS = -static -lm ${PCAUDIOLIB_LIBS} ${LIBFUZZER_NO_MAIN}
 src_speak_ng_CFLAGS  = -Isrc/libespeak-ng ${AM_CFLAGS}
 
-bin_PROGRAMS += src/espeak-ng
+bin_PROGRAMS += $(STAGING_DIR_HOSTPKG)/bin/espeak-ng
 
 if HAVE_RONN
-man1_MANS += src/espeak-ng.1
+man1_MANS += $(STAGING_DIR_HOSTPKG)/bin/espeak-ng.1
 endif
 
 src_espeak_ng_LDADD   = src/libespeak-ng.la ${PCAUDIOLIB_LIBS} ${LIBFUZZER_NO_MAIN}
-src_espeak_ng_SOURCES = src/espeak-ng.c
+src_espeak_ng_SOURCES = $(STAGING_DIR_HOSTPKG)/bin/espeak-ng.c
 if HAVE_LIBFUZZER
 nodist_EXTRA_src_espeak_ng_SOURCES = force-cxx-linking.cxx
 endif
@@ -395,9 +395,9 @@ EXTRA_DIST += $(filter-out phsource/phonemes.stamp,$(PHSOURCE)) \
 
 phsource/phonemes.stamp: \
 	$(PHSOURCE) \
-	src/espeak-ng
-	ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-intonations && \
-		ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-phonemes && \
+	$(STAGING_DIR_HOSTPKG)/bin/espeak-ng
+	ESPEAK_DATA_PATH=$(CURDIR) $(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile-intonations && \
+		ESPEAK_DATA_PATH=$(CURDIR) $(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile-phonemes && \
 		touch $@
 
 ##### android targets:
@@ -437,10 +437,10 @@ dictsource/%_extra:
 # (at the cost of a spurious error message.)
 #
 # NOTE: keep in sync with 'espeak-ng-data/yue_dict' more specific rule.
-espeak-ng-data/%_dict: src/espeak-ng phsource/phonemes.stamp
+espeak-ng-data/%_dict: $(STAGING_DIR_HOSTPKG)/bin/espeak-ng phsource/phonemes.stamp
 	@echo "  DICT      $@"
 	rm -f $@
-	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) ../src/espeak-ng --compile="$(*F)"
+	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) ../$(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile="$(*F)"
 
 dictionaries: \
 	espeak-ng-data/af_dict \
@@ -951,13 +951,13 @@ dictsource/yue_listx:
 
 # NOTE: keep in sync with espeak-ng-data/%_dict more generic rule.
 if HAVE_YUE_EXTENDED_DICTIONARY
-espeak-ng-data/yue_dict: src/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_listx dictsource/yue_emoji
+espeak-ng-data/yue_dict: $(STAGING_DIR_HOSTPKG)/bin/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_listx dictsource/yue_emoji
 else
-espeak-ng-data/yue_dict: src/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_emoji
+espeak-ng-data/yue_dict: $(STAGING_DIR_HOSTPKG)/bin/espeak-ng phsource/phonemes.stamp dictsource/yue_list dictsource/yue_rules dictsource/yue_extra dictsource/yue_emoji
 endif
 	@echo "  DICT      $@"
 	rm -f $@
-	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) LD_LIBRARY_PATH=../src:${LD_LIBRARY_PATH} ../src/espeak-ng --compile=yue && cd ..
+	cd dictsource && ESPEAK_DATA_PATH=$(CURDIR) LD_LIBRARY_PATH=../src:${LD_LIBRARY_PATH} ../$(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile=yue && cd ..
 
 dictsource/yue_emoji:
 	@echo "  EMOJI     $@"
@@ -977,9 +977,9 @@ PHSOURCE_MBROLA = \
 mbrola: \
 	$(patsubst phsource/mbrola/%,espeak-ng-data/mbrola_ph/%_phtrans,$(PHSOURCE_MBROLA))
 
-espeak-ng-data/mbrola_ph/%_phtrans: phsource/mbrola/% src/espeak-ng
+espeak-ng-data/mbrola_ph/%_phtrans: phsource/mbrola/% $(STAGING_DIR_HOSTPKG)/bin/espeak-ng
 	mkdir -p espeak-ng-data/mbrola_ph
-	ESPEAK_DATA_PATH=$(CURDIR) src/espeak-ng --compile-mbrola=phsource/mbrola/$*
+	ESPEAK_DATA_PATH=$(CURDIR) $(STAGING_DIR_HOSTPKG)/bin/espeak-ng --compile-mbrola=phsource/mbrola/$*
 
 EXTRA_DIST += $(PHSOURCE_MBROLA)
 
