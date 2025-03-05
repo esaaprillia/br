@@ -173,8 +173,13 @@ _SCHEME_KEYS = ('stdlib', 'platstdlib', 'purelib', 'platlib', 'include',
 _PY_VERSION = sys.version.split()[0]
 _PY_VERSION_SHORT = f'{sys.version_info[0]}.{sys.version_info[1]}'
 _PY_VERSION_SHORT_NO_DOT = f'{sys.version_info[0]}{sys.version_info[1]}'
-_BASE_PREFIX = os.path.normpath(sys.base_prefix)
-_BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
+if "_python_sysroot" in os.environ:
+    _sysroot=os.environ.get('_python_sysroot')
+    _BASE_PREFIX = os.path.normpath(_sysroot + os.environ.get('_python_prefix'))
+    _BASE_EXEC_PREFIX = os.path.normpath(_sysroot + os.environ.get('_python_exec_prefix'))
+else:
+    _BASE_PREFIX = os.path.normpath(sys.base_prefix)
+    _BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
 # Mutex guarding initialization of _CONFIG_VARS.
 _CONFIG_VARS_LOCK = threading.RLock()
 _CONFIG_VARS = None
@@ -464,6 +469,11 @@ def _init_config_vars():
     # Normalized versions of prefix and exec_prefix are handy to have;
     # in fact, these are the standard versions used most places in the
     # Distutils.
+if "_python_sysroot" in os.environ:
+    _sysroot=os.environ.get('_python_sysroot')
+    _PREFIX = os.path.normpath(_sysroot + os.environ.get('_python_prefix'))
+    _EXEC_PREFIX = os.path.normpath(_sysroot + os.environ.get('_python_exec_prefix'))
+else:
     _PREFIX = os.path.normpath(sys.prefix)
     _EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
     _CONFIG_VARS['prefix'] = _PREFIX  # FIXME: This gets overwriten by _init_posix.
