@@ -255,6 +255,17 @@ class build_ext(Command):
                 self.library_dirs.append('.')
 
         self.library_dirs.extend(self._python_lib_dir(sysconfig))
+        
+        # For building extensions with a shared Python library,
+        # Python's library directory must be appended to library_dirs
+        # See Issues: #1600860, #4366
+        if sysconfig.get_config_var('Py_ENABLE_SHARED'):
+            if not sysconfig.python_build:
+                # building third party extensions
+                self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
+            else:
+                # building python standard extensions
+                self.library_dirs.append('.')
 
         # The argument parsing will result in self.define being a string, but
         # it has to be a list of 2-tuples.  All the preprocessor symbols
