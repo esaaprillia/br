@@ -55,6 +55,9 @@ RCSIDH(eap_tls_h, "$Id$")
 /*
  *	For RH 9, which apparently needs this.
  */
+#ifndef OPENSSL_USE_DEPRECATED
+#define OPENSSL_USE_DEPRECATED
+#endif
 #ifndef OPENSSL_NO_KRB5
 #define OPENSSL_NO_KRB5
 #endif
