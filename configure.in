@@ -512,12 +512,6 @@ fi
 
 AC_PATH_PROG(RUSERS, rusers, /usr/bin/rusers)
 
-dnl FIXME This is truly gross.
-missing_dir=`cd $ac_aux_dir && pwd`
-AM_MISSING_PROG(ACLOCAL, aclocal, $missing_dir)
-AM_MISSING_PROG(AUTOCONF, autoconf, $missing_dir)
-AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
-
 AC_PATH_PROG(LOCATE,locate)
 AC_PATH_PROG(DIRNAME,dirname)
 AC_PATH_PROG(GREP,grep)
