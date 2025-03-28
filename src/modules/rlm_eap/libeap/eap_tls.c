@@ -43,6 +43,7 @@ RCSID("$Id$")
 
 #include <freeradius-devel/autoconf.h>
 #include <assert.h>
+#define OPENSSL_USE_DEPRECATED 1
 #include "eap_tls.h"
 
 /*
