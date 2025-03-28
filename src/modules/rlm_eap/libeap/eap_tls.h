@@ -51,6 +51,8 @@ RCSIDH(eap_tls_h, "$Id$")
 #include <unistd.h>
 #endif
 
+#define OPENSSL_USE_DEPRECATED
+
 #ifndef NO_OPENSSL
 /*
  *	For RH 9, which apparently needs this.
