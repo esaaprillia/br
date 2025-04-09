@@ -87,7 +87,7 @@ otp_gen_state(char rad_state[OTP_MAX_RADSTATE_LEN],
               size_t clen,
               int32_t flags, int32_t when, const unsigned char key[16])
 {
-  HMAC_CTX hmac_ctx;
+  HMAC_CTX *hmac_ctx;
   unsigned char hmac[MD5_DIGEST_LENGTH];
   char *p;
   char state[OTP_MAX_RADSTATE_LEN];
@@ -97,12 +97,12 @@ otp_gen_state(char rad_state[OTP_MAX_RADSTATE_LEN],
    * DES, so we'll use it's hmac functionality also -- saves us from
    * having to collect the data to be signed into one contiguous piece.
    */
-  HMAC_Init(&hmac_ctx, key, sizeof(key[0]) * 16, EVP_md5());
-  HMAC_Update(&hmac_ctx, challenge, clen);
-  HMAC_Update(&hmac_ctx, (unsigned char *) &flags, 4);
-  HMAC_Update(&hmac_ctx, (unsigned char *) &when, 4);
-  HMAC_Final(&hmac_ctx, hmac, NULL);
-  HMAC_cleanup(&hmac_ctx);
+  HMAC_Init_ex(hmac_ctx, key, sizeof(key[0]) * 16, EVP_md5());
+  HMAC_Update(hmac_ctx, challenge, clen);
+  HMAC_Update(hmac_ctx, (unsigned char *) &flags, 4);
+  HMAC_Update(hmac_ctx, (unsigned char *) &when, 4);
+  HMAC_Final(hmac_ctx, hmac, NULL);
+  HMAC_CTX_free(hmac_ctx);
 
   /*
    * Generate the state.  Note that it is in ASCII.  The challenge
