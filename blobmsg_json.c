@@ -18,7 +18,7 @@
 #include "blobmsg_json.h"
 
 #ifdef JSONC
-	#include <json.h>
+	#include <json-c/json.h>
 #else
 	#include <json/json.h>
 #endif
