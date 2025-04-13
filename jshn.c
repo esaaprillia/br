@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #ifdef JSONC
-        #include <json.h>
+        #include <json-c/json.h>
 #else
         #include <json/json.h>
 #endif
