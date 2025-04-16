@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 /* XML::LibXML stuff */
-#include <libxml/xmlmemory.h>
+#include <libxml2/libxml/xmlmemory.h>
 #include "perl-libxml-mm.h"
 
 #undef NDEBUG
