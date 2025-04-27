@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=php
-PKG_VERSION:=5.6.32
+PKG_VERSION:=5.2.17
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=W. Michael Petullo <mike@flyn.org>, Michael Heimpold <mhei@heimpold.de>
@@ -16,9 +16,9 @@ PKG_MAINTAINER:=W. Michael Petullo <mike@flyn.org>, Michael Heimpold <mhei@heimp
 PKG_LICENSE:=PHPv3.01
 PKG_LICENSE_FILES:=LICENSE
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=http://www.php.net/distributions/
-PKG_MD5SUM:=660cd5bc0f16eaad655b7815c757aadc
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE_URL:=http://museum.php.net/php5/
+PKG_MD5SUM:=skip
 
 PKG_FIXUP:=libtool autoreconf
 PKG_BUILD_PARALLEL:=1
@@ -26,19 +26,18 @@ PKG_USE_MIPS16:=0
 
 PHP5_MODULES = \
 	calendar ctype curl \
-	fileinfo \
 	dom \
 	exif \
 	ftp \
 	gettext gd gmp \
 	hash \
-	iconv intl \
+	iconv \
 	json \
 	ldap \
 	mbstring mcrypt mysql mysqli \
-	opcache openssl \
+	openssl \
 	pcntl pdo pdo-mysql pdo-pgsql pdo-sqlite pgsql \
-	session shmop simplexml soap sockets sqlite3 sysvmsg sysvsem sysvshm \
+	session shmop simplexml soap sockets sqlite sysvmsg sysvsem sysvshm \
 	tokenizer \
 	xml xmlreader xmlwriter zip \
 
@@ -98,7 +97,6 @@ endef
 
 define Package/php5-cli
   $(call Package/php5/Default)
-  DEPENDS+= +PACKAGE_php5-mod-intl:libstdcpp
   TITLE+= (CLI)
 endef
 
@@ -109,7 +107,6 @@ endef
 
 define Package/php5-cgi
   $(call Package/php5/Default)
-  DEPENDS+= +PACKAGE_php5-mod-intl:libstdcpp
   TITLE+= (CGI & FastCGI)
 endef
 
@@ -129,21 +126,9 @@ define Package/php5-fastcgi/description
   on the php5-cgi package, containing just the startup script.
 endef
 
-define Package/php5-fpm
-  $(call Package/php5/Default)
-  DEPENDS+= +php5-cgi
-  TITLE+= (FPM)
-endef
-
-define Package/php5-fpm/description
-  $(call Package/php5/Default/description)
-  This package contains the FastCGI Process Manager of the PHP5 interpreter.
-endef
-
 CONFIGURE_ARGS+= \
 	--enable-cli \
 	--enable-cgi \
-	--enable-fpm \
 	--enable-shared \
 	--disable-static \
 	--disable-rpath \
@@ -156,8 +141,7 @@ CONFIGURE_ARGS+= \
 	\
 	--with-zlib="$(STAGING_DIR)/usr" \
 	  --with-zlib-dir="$(STAGING_DIR)/usr" \
-	--with-pcre-regex="$(STAGING_DIR)/usr" \
-	--disable-phar
+	--with-pcre-regex="$(STAGING_DIR)/usr"
 
 ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-calendar),)
   CONFIGURE_ARGS+= --enable-calendar=shared
@@ -175,12 +159,6 @@ ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-curl),)
   CONFIGURE_ARGS+= --with-curl=shared,"$(STAGING_DIR)/usr"
 else
   CONFIGURE_ARGS+= --without-curl
-endif
-
-ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-fileinfo),)
-  CONFIGURE_ARGS+= --enable-fileinfo=shared
-else
-  CONFIGURE_ARGS+= --disable-fileinfo
 endif
 
 ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-gettext),)
@@ -239,12 +217,6 @@ else
   CONFIGURE_ARGS+= --without-iconv
 endif
 
-ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-intl),)
-  CONFIGURE_ARGS+= --enable-intl=shared
-else
-  CONFIGURE_ARGS+= --disable-intl
-endif
-
 ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-json),)
   CONFIGURE_ARGS+= --enable-json=shared
 else
@@ -281,12 +253,6 @@ ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-mysqli),)
   CONFIGURE_ARGS+= --with-mysqli=shared,"$(STAGING_DIR)/usr/bin/mysql_config"
 else
   CONFIGURE_ARGS+= --without-mysqli
-endif
-
-ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-opcache),)
-  CONFIGURE_ARGS+= --enable-opcache=shared
-else
-  CONFIGURE_ARGS+= --disable-opcache
 endif
 
 ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-openssl),)
@@ -361,10 +327,10 @@ else
   CONFIGURE_ARGS+= --disable-sockets
 endif
 
-ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-sqlite3),)
-  CONFIGURE_ARGS+= --with-sqlite3=shared,"$(STAGING_DIR)/usr"
+ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-sqlite),)
+  CONFIGURE_ARGS+= --with-sqlite=shared,"$(STAGING_DIR)/usr"
 else
-  CONFIGURE_ARGS+= --without-sqlite3
+  CONFIGURE_ARGS+= --without-sqlite
 endif
 
 ifneq ($(SDK)$(CONFIG_PACKAGE_php5-mod-sysvmsg),)
@@ -443,7 +409,7 @@ CONFIGURE_VARS+= \
 	ac_cv_c_bigendian_php=$(if $(CONFIG_BIG_ENDIAN),yes,no) \
 	php_cv_cc_rpath="no" \
 	iconv_impl_name="gnu_libiconv" \
-	ac_cv_php_xml2_config_path="$(STAGING_DIR)/host/bin/xml2-config" \
+	ac_cv_php_xml2_config_path="$(STAGING_DIR)/host/bin/xml2-config"
 
 define Package/php5/conffiles
 /etc/php.ini
@@ -471,23 +437,6 @@ define Package/php5-fastcgi/install
 
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/php5-fastcgi.init $(1)/etc/init.d/php5-fastcgi
-endef
-
-define Package/php5-fpm/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sapi/fpm/php-fpm $(1)/usr/bin/php-fpm
-
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/php5-fpm.conf $(1)/etc/php5-fpm.conf
-
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/php5-fpm.config $(1)/etc/config/php5-fpm
-
-	$(INSTALL_DIR) $(1)/etc/php5-fpm.d
-	$(INSTALL_DATA) ./files/php5-fpm-www.conf $(1)/etc/php5-fpm.d/www.conf
-
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/php5-fpm.init $(1)/etc/init.d/php5-fpm
 endef
 
 define Build/Prepare
@@ -536,7 +485,6 @@ $(eval $(call BuildPackage,php5))
 $(eval $(call BuildPackage,php5-cgi))
 $(eval $(call BuildPackage,php5-cli))
 $(eval $(call BuildPackage,php5-fastcgi))
-$(eval $(call BuildPackage,php5-fpm))
 
 #$(eval $(call BuildModule,NAME,TITLE[,PKG DEPENDS]))
 $(eval $(call BuildModule,calendar,Calendar))
@@ -544,21 +492,18 @@ $(eval $(call BuildModule,ctype,Ctype))
 $(eval $(call BuildModule,curl,cURL,+PACKAGE_php5-mod-curl:libcurl))
 $(eval $(call BuildModule,dom,DOM,+@PHP5_LIBXML +PACKAGE_php5-mod-dom:libxml2))
 $(eval $(call BuildModule,exif,EXIF))
-$(eval $(call BuildModule,fileinfo,Fileinfo))
 $(eval $(call BuildModule,ftp,FTP,+PACKAGE_php5-mod-ftp:libopenssl))
 $(eval $(call BuildModule,gd,GD graphics,+PACKAGE_php5-mod-gd:libjpeg +PACKAGE_php5-mod-gd:libpng))
 $(eval $(call BuildModule,gettext,Gettext,+PACKAGE_php5-mod-gettext:libintl-full))
 $(eval $(call BuildModule,gmp,GMP,+PACKAGE_php5-mod-gmp:libgmp))
 $(eval $(call BuildModule,hash,Hash))
 $(eval $(call BuildModule,iconv,iConv,$(ICONV_DEPENDS)))
-$(eval $(call BuildModule,intl,Internationalization Functions,+PACKAGE_php5-mod-intl:icu))
 $(eval $(call BuildModule,json,JSON))
 $(eval $(call BuildModule,ldap,LDAP,+PACKAGE_php5-mod-ldap:libopenldap +PACKAGE_php5-mod-ldap:libsasl2))
 $(eval $(call BuildModule,mbstring,MBString))
 $(eval $(call BuildModule,mcrypt,Mcrypt,+PACKAGE_php5-mod-mcrypt:libmcrypt +PACKAGE_php5-mod-mcrypt:libltdl))
 $(eval $(call BuildModule,mysql,MySQL,+PACKAGE_php5-mod-mysql:libmysqlclient))
 $(eval $(call BuildModule,mysqli,MySQL Improved Extension,+PACKAGE_php5-mod-mysqli:libmysqlclient))
-$(eval $(call BuildModule,opcache,OPcache,,zend))
 $(eval $(call BuildModule,openssl,OpenSSL,+PACKAGE_php5-mod-openssl:libopenssl))
 $(eval $(call BuildModule,pcntl,PCNTL))
 $(eval $(call BuildModule,pdo,PHP Data Objects))
@@ -571,7 +516,7 @@ $(eval $(call BuildModule,shmop,Shared Memory))
 $(eval $(call BuildModule,simplexml,SimpleXML,+@PHP5_LIBXML +PACKAGE_php5-mod-simplexml:libxml2))
 $(eval $(call BuildModule,soap,SOAP,+@PHP5_LIBXML +PACKAGE_php5-mod-soap:libxml2))
 $(eval $(call BuildModule,sockets,Sockets))
-$(eval $(call BuildModule,sqlite3,SQLite3,+PACKAGE_php5-mod-sqlite3:libsqlite3))
+$(eval $(call BuildModule,sqlite,SQLite2,+PACKAGE_php5-mod-sqlite:libsqlite2))
 $(eval $(call BuildModule,sysvmsg,System V messages))
 $(eval $(call BuildModule,sysvsem,System V shared memory))
 $(eval $(call BuildModule,sysvshm,System V semaphore))
