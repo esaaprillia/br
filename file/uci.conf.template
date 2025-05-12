@@ -29,7 +29,6 @@ http {
 	gzip_proxied any;
 
 	root /var/www/html;
-	index.html index.php;
 
 	#UCI_HTTP_CONFIG
 	include conf.d/*.conf;
