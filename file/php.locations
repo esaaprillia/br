@@ -1,0 +1,49 @@
+# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+#
+location ~ \.php$ {
+    fastcgi_pass   unix:/var/run/php8-fpm.sock;
+    fastcgi_index  index.php;
+    fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+    include        fastcgi_params;
+}
+
+# deny access to .htaccess files, if Apache's document root
+# concurs with nginx's one
+#
+location ~ /\.ht {
+    deny  all;
+}
+
+location ~ ^/cake4/.+\.(jpg|jpeg|gif|png|ico|js|css)$ {
+    rewrite ^/cake4/rd_cake/webroot/(.*)$ /cake4/rd_cake/webroot/$1 break;
+    rewrite ^/cake4/rd_cake/(.*)$ /cake4/rd_cake/webroot/$1 break;
+    access_log off;
+    expires max;
+    add_header Cache-Control public;
+}
+
+location ~ ^/cake3/.+\.(jpg|jpeg|gif|png|ico|js|css)$ {
+    rewrite ^/cake3/rd_cake/webroot/(.*)$ /cake3/rd_cake/webroot/$1 break;
+    rewrite ^/cake3/rd_cake/(.*)$ /cake3/rd_cake/webroot/$1 break;
+    access_log off;
+    expires max;
+    add_header Cache-Control public;
+}
+
+location /cake4/rd_cake/node-reports/submit_report.json {
+    try_files $uri $uri/ /reporting/reporting.php;
+}
+
+location /cake3/rd_cake/node-reports/submit_report.json {
+    try_files $uri $uri/ /reporting/reporting.php;
+}
+
+location /cake4/rd_cake {
+   rewrite ^/cake4/rd_cake(.+)$ /cake4/rd_cake/webroot$1 break;
+   try_files $uri $uri/ /cake4/rd_cake/index.php$is_args$args;
+}
+
+location /cake3/rd_cake {
+   rewrite ^/cake3/rd_cake(.+)$ /cake3/rd_cake/webroot$1 break;
+   try_files $uri $uri/ /cake3/rd_cake/index.php$is_args$args;
+}
