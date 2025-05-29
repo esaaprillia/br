@@ -189,24 +189,6 @@ defineTest(qtwebengine_checkForHostPkgCfg) {
     return(true)
 }
 
-defineTest(qtwebengine_checkForGlibc) {
-    module = $$1
-    !qtConfig(webengine-system-glibc) {
-        qtwebengine_skipBuild("A suitable version >= 2.27 of libc required to build $${module} could not be found.")
-        return(false)
-    }
-    return(true)
-}
-
-defineTest(qtwebengine_checkForKhronos) {
-    module = $$1
-    !qtConfig(webengine-system-khr) {
-        qtwebengine_skipBuild("Khronos development headers required to build $${module} are missing (see mesa/libegl1-mesa-dev)")
-        return(false)
-    }
-    return(true)
-}
-
 defineTest(qtwebengine_checkForPackage) {
     module = $$1
     package = $$2
