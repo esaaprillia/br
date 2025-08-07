@@ -88,6 +88,7 @@ HOST_MAKE_VARS = \
 
 HOST_MAKE_FLAGS =
 
+HOST_CONFIGURE_PATH = .
 HOST_CONFIGURE_CMD = $(BASH) ./configure
 
 ifeq ($(HOST_OS),Darwin)
@@ -95,7 +96,7 @@ ifeq ($(HOST_OS),Darwin)
 endif
 
 define Host/Configure/Default
-	$(if $(HOST_CONFIGURE_PARALLEL),+)(cd $(HOST_BUILD_DIR)/$(3); \
+	$(if $(HOST_CONFIGURE_PARALLEL),+)(cd $(HOST_BUILD_DIR)/$(HOST_CONFIGURE_PATH)/$(3); \
 		if [ -x configure ]; then \
 			$(CP) $(SCRIPT_DIR)/config.{guess,sub} $(HOST_BUILD_DIR)/$(3)/ && \
 			$(HOST_CONFIGURE_VARS) \
