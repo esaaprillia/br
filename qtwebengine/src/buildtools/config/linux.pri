@@ -134,21 +134,6 @@ host_build {
     } else {
         gn_args += host_cpu=\"$$GN_TARGET_CPU\"
     }
-    !contains(QT_CONFIG, no-pkg-config) {
-        # Strip '>2 /dev/null' from $$pkgConfigExecutable()
-        PKGCONFIG = $$first($$list($$pkgConfigExecutable()))
-        gn_args += pkg_config=\"$$PKGCONFIG\"
-        PKG_CONFIG_HOST = $$(GN_PKG_CONFIG_HOST)
-        pkgConfigLibDir = $$(PKG_CONFIG_LIBDIR)
-        pkgConfigSysrootDir = $$(PKG_CONFIG_SYSROOT_DIR)
-        isEmpty(PKG_CONFIG_HOST): cross_compile {
-            !isEmpty(pkgConfigLibDir)|!isEmpty(pkgConfigSysrootDir) {
-                PKG_CONFIG_HOST = $$pkgConfigHostExecutable()
-            }
-        }
-        isEmpty(PKG_CONFIG_HOST): PKG_CONFIG_HOST = $$QMAKE_PKG_CONFIG_HOST
-        gn_args += host_pkg_config=\"$$PKG_CONFIG_HOST\"
-    }
 
     qtConfig(webengine-system-zlib) {
         qtConfig(webengine-system-minizip): gn_args += use_system_zlib=true use_system_minizip=true
