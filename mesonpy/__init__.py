@@ -777,26 +777,6 @@ class Project():
         if r.returncode != 0:
             raise SystemExit(r.returncode)
 
-    def _configure(self, reconfigure: bool = False) -> None:
-        """Configure Meson project."""
-        setup_args = [
-            os.fspath(self._source_dir),
-            os.fspath(self._build_dir),
-            # default build options
-            '-Dbuildtype=release',
-            '-Db_ndebug=if-release',
-            '-Db_vscrt=md',
-            # user build options
-            *self._meson_args['setup'],
-            # pass native file last to have it override the python
-            # interpreter path that may have been specified in user
-            # provided native files
-            f'--native-file={os.fspath(self._meson_native_file)}',
-        ]
-        if reconfigure:
-            setup_args.insert(0, '--reconfigure')
-        self._run(self._meson + ['setup', *setup_args])
-
     @property
     def _build_command(self) -> List[str]:
         assert self._ninja is not None  # help mypy out
