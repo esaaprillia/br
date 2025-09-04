@@ -371,7 +371,7 @@ endef
 define Package/libgfortran
 $(call Package/gcc/Default)
   TITLE:=GFortran support library
-  DEPENDS+=@INSTALL_GFORTRAN
+  DEPENDS+=@TARGET_armsr||TARGET_armsr_armv8 +libgcc
 endef
 
 define Package/libgfortran/config
