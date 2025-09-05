@@ -53,7 +53,7 @@ config SJLJ_EXCEPTIONS
 config INSTALL_GFORTRAN
 	bool
 	prompt "Build/install fortran compiler?" if TOOLCHAINOPTS
-	default "y"
+	default y
 	help
 	    Build/install GNU fortran compiler ?
 
