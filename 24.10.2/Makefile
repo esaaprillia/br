@@ -371,7 +371,7 @@ endef
 define Package/libgfortran
 $(call Package/gcc/Default)
   TITLE:=GFortran support library
-  DEPENDS+=@INSTALL_GFORTRAN @TARGET_armsr||TARGET_armsr_armv8 +libgcc
+  DEPENDS+=@INSTALL_GFORTRAN
 endef
 
 define Package/libgfortran/config
@@ -415,6 +415,35 @@ define Package/libgomp/config
 		prompt "libgomp shared library files (use wildcards)"
 		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libgomp
 		default "./lib/libgomp.so*"
+
+	endmenu
+endef
+
+
+define Package/gfortran
+$(call Package/libc/Default)
+  DEPENDS:=@INSTALL_GFORTRAN +libgfortran
+  SECTION:=utils
+  CATEGORY:=Utilities
+  TITLE:=GNU Fortran Compiler
+endef
+
+define Package/gfortran/config
+	menu "Configuration"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_gfortran
+
+	config GFORTRAN_ROOT_DIR
+		string
+		prompt "gfortran base directory"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_gfortran
+		default TOOLCHAIN_ROOT  if !NATIVE_TOOLCHAIN
+		default "/"  if NATIVE_TOOLCHAIN
+
+	config GFORTRAN_FILE_SPEC
+		string
+		prompt "gfortran file"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_gfortran
+		default "./usr/bin/gfortran"
 
 	endmenu
 endef
@@ -617,6 +646,11 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 		$(1)/lib/
   endif
   endef
+  
+  define Package/gfortran/install
+	$(INSTALL_DIR) $(1)/usr/bin/
+	$(CP) $(TOOLCHAIN_DIR)/bin/gfortran $(1)/usr/bin/
+  endef
 
   define Package/ldd/install
 	$(INSTALL_DIR) $(1)/usr/bin/
@@ -752,6 +786,15 @@ else
 	done ; \
 	exit 0
   endef
+  
+  define Package/gfortran/install
+	for file in $(call qstrip,$(CONFIG_GFORTRAN_FILE_SPEC)); do \
+		dir=`dirname $$$$file` ; \
+		$(INSTALL_DIR) $(1)/$$$$dir ; \
+		$(CP) $(call qstrip,$(CONFIG_GFORTRAN_ROOT_DIR))/$$$$file $(1)/$$$$dir/ ; \
+	done ; \
+	exit 0
+  endef
 
   define Package/ldd/install
 	for file in $(call qstrip,$(CONFIG_LDD_FILE_SPEC)); do \
@@ -787,5 +830,6 @@ $(eval $(call BuildPackage,libthread-db))
 $(eval $(call BuildPackage,librt))
 $(eval $(call BuildPackage,libgfortran))
 $(eval $(call BuildPackage,libgomp))
+$(eval $(call BuildPackage,gfortran))
 $(eval $(call BuildPackage,ldd))
 $(eval $(call BuildPackage,ldconfig))
