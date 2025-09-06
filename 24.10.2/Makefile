@@ -421,8 +421,8 @@ endef
 
 
 define Package/gfortran
-$(call Package/libc/Default)
-  DEPENDS:=@INSTALL_GFORTRAN +libgfortran
+$(call Package/gcc/Default)
+  DEPENDS:=+libgfortran
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=GNU Fortran Compiler
