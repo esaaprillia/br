@@ -637,10 +637,10 @@ class Project():
         editable_verbose: bool = False,
     ) -> None:
         self._source_dir = pathlib.Path(source_dir).absolute()
-        self._build_dir = pathlib.Path(openwrt-build).absolute()
+        self._build_dir = pathlib.Path(build_dir).absolute()
         self._editable_verbose = editable_verbose
-        self._meson_native_file = self._source_dir / 'openwrt-native.txt'
-        self._meson_cross_file = self._source_dir / 'openwrt-cross.txt'
+        self._meson_native_file = self._build_dir / 'meson-python-native-file.ini'
+        self._meson_cross_file = self._build_dir / 'meson-python-cross-file.ini'
         self._meson_args: MesonArgs = collections.defaultdict(list)
         self._limited_api = False
 
@@ -1120,4 +1120,3 @@ def build_editable(
     out = pathlib.Path(wheel_directory)
     with _project(config_settings) as project:
         return project.editable(out).name
-
