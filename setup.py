@@ -1,58 +1,42 @@
-from setuptools import setup
-from setuptools import find_packages
-
-version = '0.0.3'
-
-install_requires = [
-
-]
-
-dev_extras = [
-    'pep8',
-    'tox',
-    'pypandoc',
-]
-
-docs_extras = [
-    'Sphinx>=1.0',  # autodoc_member_order = 'bysource', autodoc_default_flags
-    'sphinx_rtd_theme',
-    'sphinxcontrib-programoutput',
-]
-
+__title__ = "pygatt"
+__version__ = "5.0.0"
+__license__ = "Apache License, Version 2.0 and MIT License"
+__copyright__ = "Copyright 2015 Stratos Inc. and Orion Labs"
 
 try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')
-    long_description = long_description.replace("\r", '')
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup  # pylint: disable=F0401,E0611
 
-except(IOError, ImportError):
-    import io
-    with io.open('README.md', encoding='utf-8') as f:
-        long_description = f.read()
+with open("README.rst") as f:
+    readme = f.read()
+with open("CHANGELOG.rst") as f:
+    changelog = f.read()
 
 setup(
-    name='chacha20poly1305',
-    version=version,
-    description='Chacha20Poly1305',
-    long_description=long_description,
-    url='https://github.com/ph4r05/py-chacha20poly1305',
-    author='Dusan Klinec',
-    author_email='dusan.klinec@gmail.com',
-    license='LGPL',
-    classifiers=[
-        'Intended Audience :: Developers',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Security',
-    ],
-
-    packages=find_packages(),
-    include_package_data=True,
-    install_requires=install_requires,
+    name=__title__,
+    version=__version__,
+    description="Python Bluetooth LE (Low Energy) and GATT Library",
+    author="Chris Peplin <github@rhubarbtech.com>",
+    author_email="github@rhubarbtech.com",
+    packages=find_packages(exclude=("tests", "tests.*")),
+    package_data={"": ["LICENSE"]},
+    license="Apache 2.0 and MIT",
+    long_description=readme + "\n\n" + changelog,
+    url="https://github.com/peplin/pygatt",
+    install_requires=["pyserial", "enum-compat"],
+    setup_requires=["coverage == 5.5", "pytest == 8.3.2"],
     extras_require={
-        'dev': dev_extras,
-        'docs': docs_extras,
+        "GATTTOOL": ["pexpect"],
     },
+    package_dir={"pygatt": "pygatt"},
+    zip_safe=False,
+    include_package_data=True,
+    classifiers=(
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+    ),
 )
