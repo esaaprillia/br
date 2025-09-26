@@ -683,8 +683,7 @@ else
 	for file in $(call qstrip,$(CONFIG_LIBGO_FILE_SPEC)); do \
 		$(INSTALL_DIR) $(1)/lib ; \
 		$(CP) $(call qstrip,$(CONFIG_LIBGO_ROOT_DIR))/$$$$file $(1)/lib/ ; \
-	done ; \
-	exit 0
+	done
   endef
 
   define Package/libstdcpp/install
