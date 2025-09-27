@@ -40,7 +40,7 @@ LIB_SPECS="
 	gcc:      libgcc_s
 	ssp:      libssp
 	gfortran: libgfortran
-	gccgo: libgo
+	gccgo:	  libgo
 	gomp:	  libgomp
 	atomic:	  libatomic
 	quadmath: libquadmath
