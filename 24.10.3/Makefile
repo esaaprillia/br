@@ -554,6 +554,11 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(TOOLCHAIN_DIR)/lib/libgo.so.* $(1)/usr/lib/
   endef
+  
+  define Package/libgomp/install
+	$(INSTALL_DIR) $(1)/lib
+	$(CP) $(TOOLCHAIN_DIR)/lib/libgomp.so.* $(1)/lib/
+  endef
 
   define Package/libstdcpp/install
 	$(INSTALL_DIR) $(1)/usr/lib
