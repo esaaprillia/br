@@ -1,22 +1,23 @@
-From b71fa3682f12482753f432ef6c5c3c391c699259 Mon Sep 17 00:00:00 2001
+From a3042080b3e5e614d0c645b44b123936a8b6a908 Mon Sep 17 00:00:00 2001
 From: esaaprillia <esaapriliasalsabila@gmail.com>
-Date: Sun, 28 Sep 2025 21:39:59 +0800
-Subject: [PATCH] Update configure
+Date: Mon, 29 Sep 2025 05:13:15 +0800
+Subject: [PATCH] Update Make-lang.in
 
 ---
- libgo/configure | 2 +-
+ gcc/go/Make-lang.in | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/libgo/configure b/libgo/configure
-index a607dbf..d9b522c 100644
---- a/libgo/configure
-+++ b/libgo/configure
-@@ -14847,7 +14847,7 @@ for ac_lib in '' ucontext; do
-     ac_res="none required"
-   else
-     ac_res=-l$ac_lib
--    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-+    LIBS="-lucontext  $ac_func_search_save_LIBS"
-   fi
-   if ac_fn_c_try_link "$LINENO"; then :
-   ac_cv_search_makecontext=$ac_res
+diff --git a/gcc/go/Make-lang.in b/gcc/go/Make-lang.in
+index a1f2977..1ede8c5 100644
+--- a/gcc/go/Make-lang.in
++++ b/gcc/go/Make-lang.in
+@@ -83,7 +83,7 @@ go_OBJS = $(GO_OBJS) go/gospec.o
+ go1$(exeext): $(GO_OBJS) attribs.o $(BACKEND) $(LIBDEPS) $(go.prev)
+ 	@$(call LINK_PROGRESS,$(INDEX.go),start)
+ 	+$(LLINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
+-	      $(GO_OBJS) attribs.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
++	      $(GO_OBJS) attribs.o $(BACKEND) $(LIBS) $(BACKENDLIBS) -lucontext
+ 	@$(call LINK_PROGRESS,$(INDEX.go),end)
+ 
+ # Documentation.
+
