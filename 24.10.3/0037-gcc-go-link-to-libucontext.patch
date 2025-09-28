@@ -16,7 +16,7 @@ index 426949aa91c..f97db1ef569 100644
  	module_srcdir=libgo; \
  	rm -f no-such-file || : ; \
 -	CONFIG_SITE=no-such-file $(SHELL) \
-+	CONFIG_SITE=no-such-file LIBS="-lucontext $$LIBS" $(SHELL) \
++	CONFIG_SITE=no-such-file LIBS="-lucontext $LIBS" $(SHELL) \
  	  $$s/$$module_srcdir/configure \
  	  --srcdir=$${topdir}/$$module_srcdir \
  	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
