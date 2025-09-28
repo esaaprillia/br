@@ -14847,7 +14847,7 @@ for ac_lib in '' ucontext; do
     ac_res="none required"
   else
     ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+    LIBS="-lucontext  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
   ac_cv_search_makecontext=$ac_res
@@ -15868,7 +15868,7 @@ else
 
 #include <pthread.h>
 #include <stdlib.h>
-#include <ucontext.h>
+#include <libucontext/libucontext.h>
 #include <unistd.h>
 
 __thread int tls;
