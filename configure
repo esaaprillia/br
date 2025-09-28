@@ -11290,7 +11290,7 @@ if ${ac_cv_lib_dl_dlopen+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldl  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -11316,7 +11316,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dl_dlopen" >&5
 $as_echo "$ac_cv_lib_dl_dlopen" >&6; }
@@ -11343,7 +11343,7 @@ if ${ac_cv_lib_dld_shl_load+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldld  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -11369,7 +11369,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dld_shl_load" >&5
 $as_echo "$ac_cv_lib_dld_shl_load" >&6; }
@@ -11386,7 +11386,7 @@ if ${ac_cv_lib_dl_dlopen+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldl  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -11412,7 +11412,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dl_dlopen" >&5
 $as_echo "$ac_cv_lib_dl_dlopen" >&6; }
@@ -11425,7 +11425,7 @@ if ${ac_cv_lib_svld_dlopen+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lsvld  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -11451,7 +11451,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_svld_dlopen" >&5
 $as_echo "$ac_cv_lib_svld_dlopen" >&6; }
@@ -11464,7 +11464,7 @@ if ${ac_cv_lib_dld_dld_link+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldld  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -11490,7 +11490,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dld_dld_link" >&5
 $as_echo "$ac_cv_lib_dld_dld_link" >&6; }
@@ -14554,7 +14554,7 @@ if ${ac_cv_lib_m_sqrt+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lm  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -14580,7 +14580,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_sqrt" >&5
 $as_echo "$ac_cv_lib_m_sqrt" >&6; }
@@ -14612,7 +14612,7 @@ if ${ac_cv_lib_socket_main+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lsocket  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -14632,7 +14632,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_socket_main" >&5
 $as_echo "$ac_cv_lib_socket_main" >&6; }
@@ -14668,7 +14668,7 @@ if ${ac_cv_lib_nsl_main+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lnsl  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -14688,7 +14688,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_nsl_main" >&5
 $as_echo "$ac_cv_lib_nsl_main" >&6; }
@@ -14709,7 +14709,7 @@ if ${ac_cv_lib_sendfile_main+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lsendfile  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -14729,7 +14729,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sendfile_main" >&5
 $as_echo "$ac_cv_lib_sendfile_main" >&6; }
@@ -14782,7 +14782,7 @@ if ${ac_cv_lib_pthread_pthread_create+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthread  $LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -14808,7 +14808,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_create" >&5
 $as_echo "$ac_cv_lib_pthread_pthread_create" >&6; }
@@ -14864,7 +14864,7 @@ else
   ac_cv_search_makecontext=no
 fi
 rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_makecontext" >&5
 $as_echo "$ac_cv_search_makecontext" >&6; }
@@ -14921,7 +14921,7 @@ else
   ac_cv_search_sched_yield=no
 fi
 rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_sched_yield" >&5
 $as_echo "$ac_cv_search_sched_yield" >&6; }
@@ -14977,7 +14977,7 @@ else
   ac_cv_search_nanosleep=no
 fi
 rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_nanosleep" >&5
 $as_echo "$ac_cv_search_nanosleep" >&6; }
@@ -15033,7 +15033,7 @@ else
   ac_cv_search_clock_gettime=no
 fi
 rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_clock_gettime" >&5
 $as_echo "$ac_cv_search_clock_gettime" >&6; }
@@ -15480,7 +15480,7 @@ else
   ac_cv_search_opendir=no
 fi
 rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
 $as_echo "$ac_cv_search_opendir" >&6; }
@@ -15537,7 +15537,7 @@ else
   ac_cv_search_opendir=no
 fi
 rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
+LIBS=LIBS="-lucontext $LIBS"
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
 $as_echo "$ac_cv_search_opendir" >&6; }
@@ -15623,7 +15623,7 @@ fi
 CFLAGS="$CFLAGS_hold"
 
 LIBS_hold="$LIBS"
-LIBS="$LIBS -lm"
+LIBS=LIBS="-lucontext $LIBS"
 for ac_func in cosl expl logl sinl tanl acosl asinl atanl atan2l expm1l ldexpl log10l log1pl
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -15636,12 +15636,12 @@ _ACEOF
 fi
 done
 
-LIBS="$LIBS_hold"
+LIBS=LIBS="-lucontext $LIBS"
 
 CFLAGS_hold="$CFLAGS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 LIBS_hold="$LIBS"
-LIBS="$LIBS $PTHREAD_LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 for ac_func in sem_timedwait
 do :
   ac_fn_c_check_func "$LINENO" "sem_timedwait" "ac_cv_func_sem_timedwait"
@@ -15654,10 +15654,10 @@ fi
 done
 
 CFLAGS="$CFLAGS_hold"
-LIBS="$LIBS_hold"
+LIBS=LIBS="-lucontext $LIBS"
 
 LIBS_hold="$LIBS"
-LIBS="$LIBS $MATH_LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 for ac_func in matherr
 do :
   ac_fn_c_check_func "$LINENO" "matherr" "ac_cv_func_matherr"
@@ -15669,7 +15669,7 @@ _ACEOF
 fi
 done
 
-LIBS="$LIBS_hold"
+LIBS=LIBS="-lucontext $LIBS"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports -minline-all-stringops" >&5
 $as_echo_n "checking whether compiler supports -minline-all-stringops... " >&6; }
@@ -15819,7 +15819,7 @@ else
   CFLAGS_hold="$CFLAGS"
 CFLAGS="$PTHREAD_CFLAGS"
 LIBS_hold="$LIBS"
-LIBS="$LIBS $PTHREAD_LIBS"
+LIBS=LIBS="-lucontext $LIBS"
 # The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
@@ -15940,7 +15940,7 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
 fi
 
 CFLAGS="$CFLAGS_hold"
-LIBS="$LIBS_hold"
+LIBS=LIBS="-lucontext $LIBS"
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libgo_cv_lib_setcontext_clobbers_tls" >&5
