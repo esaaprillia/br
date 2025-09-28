@@ -23,6 +23,6 @@ include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/meson.mk
 
 MESON_HOST_ARGS += \
-	-Ddefault_library=static
+	-Ddefault_library=both
 
 $(eval $(call HostBuild))
