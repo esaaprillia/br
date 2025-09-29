@@ -1,125 +1,19 @@
---- a/Makefile.in.old	2018-06-21 22:16:35.167781541 -0500
-+++ b/Makefile.in	2018-06-22 00:36:13.849486086 -0500
-@@ -52324,7 +52324,7 @@
- 	esac; \
- 	module_srcdir=libgo; \
- 	rm -f no-such-file || : ; \
--	CONFIG_SITE=no-such-file $(SHELL) \
-+	CONFIG_SITE=no-such-file LIBS="-lucontext $$LIBS" $(SHELL) \
- 	  $$s/$$module_srcdir/configure \
- 	  --srcdir=$${topdir}/$$module_srcdir \
- 	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
-
---- a/libgo/sysinfo.c.old	2024-05-22 20:29:51.727156372 -0500
-+++ b/libgo/sysinfo.c	2024-05-22 20:35:39.499799256 -0500
-@@ -363,6 +363,8 @@
- // loff_t can be defined as a macro; for -fgo-dump-spec make sure we
- // see a typedef.
- typedef loff_t libgo_loff_t_type;
-+#else
-+typedef off_t libgo_loff_t_type;
+--- a/libgo/runtime/runtime.h
++++ b/libgo/runtime/runtime.h
+@@ -500,10 +500,13 @@ int __go_setcontext(__go_context_t*);
+ void __go_makecontext(__go_context_t*, void (*)(), void*, size_t);
+ #else
+ #define __go_context_t	ucontext_t
+-#define __go_getcontext(c)	getcontext(c)
+-#define __go_setcontext(c)	setcontext(c)
++int  libucontext_getcontext(__go_context_t *);
++void libucontext_makecontext(__go_context_t *, void (*)(), int, ...);
++int  libucontext_setcontext(const __go_context_t *);
++#define __go_getcontext(c)	libucontext_getcontext(c)
++#define __go_setcontext(c)	libucontext_setcontext(c)
+ #define __go_makecontext(c, fn, sp, size) \
+-	((c)->uc_stack.ss_sp = sp, (c)->uc_stack.ss_size = size, makecontext(c, fn, 0))
++	((c)->uc_stack.ss_sp = sp, (c)->uc_stack.ss_size = size, libucontext_makecontext(c, fn, 0))
  #endif
  
- #if defined(HAVE_OFF64_T)
-
---- a/libgo/sysinfo.c.old	2018-06-22 14:25:34.000000000 +0000
-+++ b/libgo/sysinfo.c	2019-02-27 20:18:38.740000000 +0000
-@@ -78,9 +78,6 @@
- #include <sys/times.h>
- #include <sys/wait.h>
- #include <sys/un.h>
--#if defined(HAVE_SYS_USER_H)
--#include <sys/user.h>
--#endif
- #if defined(HAVE_SYS_UTSNAME_H)
- #include <sys/utsname.h>
- #endif
-
---- a/libgo/mksigtab.sh.old	2017-11-22 00:27:29.000000000 +0000
-+++ b/libgo/mksigtab.sh	2019-03-02 22:01:17.530000000 +0000
-@@ -86,7 +86,7 @@
- checksig _SIGEMT     '{_SigThrow, "SIGEMT: emulate instruction executed"}'
- checksig _SIGINFO    '{_SigNotify, "SIGINFO: status request from keyboard"}'
- checksig _SIGTHR     '{_SigNotify, "SIGTHR: reserved"}'
--checksig _SIGPOLL    '{_SigNotify, "SIGPOLL: pollable event occurred"}'
-+#checksig _SIGPOLL    '{_SigNotify, "SIGPOLL: pollable event occurred"}'
- checksig _SIGWAITING '{_SigNotify, "SIGWAITING: reserved signal no longer used by"}'
- checksig _SIGLWP     '{_SigNotify, "SIGLWP: reserved signal no longer used by"}'
- checksig _SIGFREEZE  '{_SigNotify, "SIGFREEZE: special signal used by CPR"}'
-
---- a/libgo/runtime/go-callers.c.old	2023-01-01 17:56:27.302982459 -0600
-+++ b/libgo/runtime/go-callers.c	2023-01-01 17:58:00.612903483 -0600
-@@ -165,26 +165,11 @@
-   if (function != NULL)
-     {
--      if (__builtin_strcmp (function, "makecontext") == 0)
-+      if (__builtin_strcmp (function, "makecontext") == 0
-+          || __builtin_strcmp (function, "libucontext_makecontext") == 0
-+          || __builtin_strcmp (function, "runtime_mstart") == 0
-+          || __builtin_strcmp (function, "runtime.kickoff") == 0
-+          || __builtin_strcmp (function, "runtime.main") == 0)
- 	return 1;
--      if (filename != NULL)
--	{
--	  const char *p;
--
--	  p = strrchr (filename, '/');
--	  if (p == NULL)
--	    p = filename;
--	  if (__builtin_strcmp (p, "/proc.c") == 0)
--	    {
--	      if (__builtin_strcmp (function, "runtime_mstart") == 0)
--		return 1;
--	    }
--	  else if (__builtin_strcmp (p, "/proc.go") == 0)
--	    {
--	      if (__builtin_strcmp (function, "runtime.kickoff") == 0
--		  || __builtin_strcmp (function, "runtime.main") == 0)
--		return 1;
--	    }
--	}
-     }
- 
-   return arg->index >= arg->max;
-See also: https://github.com/modern-go/reflect2/issues/21
-
---- a/libgo/go/runtime/malloc.go.old	2024-05-21 02:47:42.000000000 -0500
-+++ b/libgo/go/runtime/malloc.go	2024-06-03 19:25:48.497999687 -0500
-@@ -1297,6 +1297,11 @@
- 	return mallocgc(typ.size, typ, true)
- }
- 
-+//go:linkname reflect_unsafe_New_one_underscore reflect.unsafe_New
-+func reflect_unsafe_New_one_underscore(typ *_type) unsafe.Pointer {
-+	return mallocgc(typ.size, typ, true)
-+}
-+
- //go:linkname reflectlite_unsafe_New internal_1reflectlite.unsafe__New
- func reflectlite_unsafe_New(typ *_type) unsafe.Pointer {
- 	return mallocgc(typ.size, typ, true)
-@@ -1319,6 +1324,11 @@
- 	return newarray(typ, n)
- }
- 
-+//go:linkname reflect_unsafe_NewArray_one_underscore reflect.unsafe_NewArray
-+func reflect_unsafe_NewArray_one_underscore(typ *_type, n int) unsafe.Pointer {
-+	return newarray(typ, n)
-+}
-+
- func profilealloc(mp *m, x unsafe.Pointer, size uintptr) {
- 	c := getMCache(mp)
- 	if c == nil {
-
-diff --git a/libgo/mksysinfo.sh b/libgo/mksysinfo.sh
-index ea1fa17..cd4151c 100644
---- a/libgo/mksysinfo.sh
-+++ b/libgo/mksysinfo.sh
-@@ -126,7 +126,7 @@ if ! grep '^const SIGCLD ' ${OUT} >/dev/null 2>&1; then
- fi
- 
- # The syscall numbers.  We force the names to upper case.
--grep '^const _SYS_' gen-sysinfo.go | \
-+grep '^const _SYS_[a-z]' gen-sysinfo.go | \
-   grep -v '^const _SYS_SECCOMP = ' | \
-   sed -e 's/const _\(SYS_[^= ]*\).*$/\1/' | \
-   while read sys; do
+ // Symbols defined by the linker.
