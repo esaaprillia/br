@@ -1,34 +1,52 @@
-From a3042080b3e5e614d0c645b44b123936a8b6a908 Mon Sep 17 00:00:00 2001
-From: esaaprillia <esaapriliasalsabila@gmail.com>
-Date: Mon, 29 Sep 2025 05:13:15 +0800
-Subject: [PATCH] Update Make-lang.in
+--- a/Makefile.in.old	2018-06-21 22:16:35.167781541 -0500
++++ b/Makefile.in	2018-06-22 00:36:13.849486086 -0500
+@@ -52324,7 +52324,7 @@
+ 	esac; \
+ 	module_srcdir=libgo; \
+ 	rm -f no-such-file || : ; \
+-	CONFIG_SITE=no-such-file $(SHELL) \
++	CONFIG_SITE=no-such-file LIBS="-lucontext $$LIBS" $(SHELL) \
+ 	  $$s/$$module_srcdir/configure \
+ 	  --srcdir=$${topdir}/$$module_srcdir \
+ 	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
 
----
- gcc/go/Make-lang.in | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/gcc/go/Make-lang.in b/gcc/go/Make-lang.in
-index a1f2977..1ede8c5 100644
---- a/gcc/go/Make-lang.in
-+++ b/gcc/go/Make-lang.in
-@@ -83,7 +83,7 @@ go_OBJS = $(GO_OBJS) go/gospec.o
- go1$(exeext): $(GO_OBJS) attribs.o $(BACKEND) $(LIBDEPS) $(go.prev)
- 	@$(call LINK_PROGRESS,$(INDEX.go),start)
- 	+$(LLINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
--	      $(GO_OBJS) attribs.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
-+	      $(GO_OBJS) attribs.o $(BACKEND) $(LIBS) $(BACKENDLIBS) -lucontext
- 	@$(call LINK_PROGRESS,$(INDEX.go),end)
+--- a/libgo/sysinfo.c.old	2024-05-22 20:29:51.727156372 -0500
++++ b/libgo/sysinfo.c	2024-05-22 20:35:39.499799256 -0500
+@@ -363,6 +363,8 @@
+ // loff_t can be defined as a macro; for -fgo-dump-spec make sure we
+ // see a typedef.
+ typedef loff_t libgo_loff_t_type;
++#else
++typedef off_t libgo_loff_t_type;
+ #endif
  
- # Documentation.
+ #if defined(HAVE_OFF64_T)
 
-Similar to Solaris, libucontext does not clear the stack below makecontext.
-This causes the Go frontend to sometimes go below the stack.
+--- a/libgo/sysinfo.c.old	2018-06-22 14:25:34.000000000 +0000
++++ b/libgo/sysinfo.c	2019-02-27 20:18:38.740000000 +0000
+@@ -78,9 +78,6 @@
+ #include <sys/times.h>
+ #include <sys/wait.h>
+ #include <sys/un.h>
+-#if defined(HAVE_SYS_USER_H)
+-#include <sys/user.h>
+-#endif
+ #if defined(HAVE_SYS_UTSNAME_H)
+ #include <sys/utsname.h>
+ #endif
 
-On 32-bit Arm systems, this resulted in #832.  It is likely, though not known,
-that this could have caused other issues we've seen in gccgo as well.
+--- a/libgo/mksigtab.sh.old	2017-11-22 00:27:29.000000000 +0000
++++ b/libgo/mksigtab.sh	2019-03-02 22:01:17.530000000 +0000
+@@ -86,7 +86,7 @@
+ checksig _SIGEMT     '{_SigThrow, "SIGEMT: emulate instruction executed"}'
+ checksig _SIGINFO    '{_SigNotify, "SIGINFO: status request from keyboard"}'
+ checksig _SIGTHR     '{_SigNotify, "SIGTHR: reserved"}'
+-checksig _SIGPOLL    '{_SigNotify, "SIGPOLL: pollable event occurred"}'
++#checksig _SIGPOLL    '{_SigNotify, "SIGPOLL: pollable event occurred"}'
+ checksig _SIGWAITING '{_SigNotify, "SIGWAITING: reserved signal no longer used by"}'
+ checksig _SIGLWP     '{_SigNotify, "SIGLWP: reserved signal no longer used by"}'
+ checksig _SIGFREEZE  '{_SigNotify, "SIGFREEZE: special signal used by CPR"}'
 
-Additionally, since we strip libgo.so, filename is always NULL.  This caused
-the unwinder to continue through runtime_mstart which caused the same issue.
 --- a/libgo/runtime/go-callers.c.old	2023-01-01 17:56:27.302982459 -0600
 +++ b/libgo/runtime/go-callers.c	2023-01-01 17:58:00.612903483 -0600
 @@ -165,26 +165,11 @@
@@ -63,3 +81,45 @@ the unwinder to continue through runtime_mstart which caused the same issue.
      }
  
    return arg->index >= arg->max;
+See also: https://github.com/modern-go/reflect2/issues/21
+
+--- a/libgo/go/runtime/malloc.go.old	2024-05-21 02:47:42.000000000 -0500
++++ b/libgo/go/runtime/malloc.go	2024-06-03 19:25:48.497999687 -0500
+@@ -1297,6 +1297,11 @@
+ 	return mallocgc(typ.size, typ, true)
+ }
+ 
++//go:linkname reflect_unsafe_New_one_underscore reflect.unsafe_New
++func reflect_unsafe_New_one_underscore(typ *_type) unsafe.Pointer {
++	return mallocgc(typ.size, typ, true)
++}
++
+ //go:linkname reflectlite_unsafe_New internal_1reflectlite.unsafe__New
+ func reflectlite_unsafe_New(typ *_type) unsafe.Pointer {
+ 	return mallocgc(typ.size, typ, true)
+@@ -1319,6 +1324,11 @@
+ 	return newarray(typ, n)
+ }
+ 
++//go:linkname reflect_unsafe_NewArray_one_underscore reflect.unsafe_NewArray
++func reflect_unsafe_NewArray_one_underscore(typ *_type, n int) unsafe.Pointer {
++	return newarray(typ, n)
++}
++
+ func profilealloc(mp *m, x unsafe.Pointer, size uintptr) {
+ 	c := getMCache(mp)
+ 	if c == nil {
+
+diff --git a/libgo/mksysinfo.sh b/libgo/mksysinfo.sh
+index ea1fa17..cd4151c 100644
+--- a/libgo/mksysinfo.sh
++++ b/libgo/mksysinfo.sh
+@@ -126,7 +126,7 @@ if ! grep '^const SIGCLD ' ${OUT} >/dev/null 2>&1; then
+ fi
+ 
+ # The syscall numbers.  We force the names to upper case.
+-grep '^const _SYS_' gen-sysinfo.go | \
++grep '^const _SYS_[a-z]' gen-sysinfo.go | \
+   grep -v '^const _SYS_SECCOMP = ' | \
+   sed -e 's/const _\(SYS_[^= ]*\).*$/\1/' | \
+   while read sys; do
