@@ -1,3 +1,15 @@
+--- a/Makefile.in.old	2018-06-21 22:16:35.167781541 -0500
++++ b/Makefile.in	2018-06-22 00:36:13.849486086 -0500
+@@ -52324,7 +52324,7 @@
+ 	esac; \
+ 	module_srcdir=libgo; \
+ 	rm -f no-such-file || : ; \
+-	CONFIG_SITE=no-such-file $(SHELL) \
++	CONFIG_SITE=no-such-file LIBS="-lucontext $$LIBS" $(SHELL) \
+ 	  $$s/$$module_srcdir/configure \
+ 	  --srcdir=$${topdir}/$$module_srcdir \
+ 	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
+
 --- a/libgo/runtime/runtime.h
 +++ b/libgo/runtime/runtime.h
 @@ -500,10 +500,13 @@ int __go_setcontext(__go_context_t*);
