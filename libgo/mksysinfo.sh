@@ -126,7 +126,7 @@ if ! grep '^const SIGCLD ' ${OUT} >/dev/null 2>&1; then
 fi
 
 # The syscall numbers.  We force the names to upper case.
-grep '^const _SYS_' gen-sysinfo.go | \
+grep '^const _SYS_[a-z]' gen-sysinfo.go | \
   grep -v '^const _SYS_SECCOMP = ' | \
   sed -e 's/const _\(SYS_[^= ]*\).*$/\1/' | \
   while read sys; do
