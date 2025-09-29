@@ -21,3 +21,45 @@ index a1f2977..1ede8c5 100644
  
  # Documentation.
 
+Similar to Solaris, libucontext does not clear the stack below makecontext.
+This causes the Go frontend to sometimes go below the stack.
+
+On 32-bit Arm systems, this resulted in #832.  It is likely, though not known,
+that this could have caused other issues we've seen in gccgo as well.
+
+Additionally, since we strip libgo.so, filename is always NULL.  This caused
+the unwinder to continue through runtime_mstart which caused the same issue.
+--- libgo/runtime/go-callers.c.old	2023-01-01 17:56:27.302982459 -0600
++++ libgo/runtime/go-callers.c	2023-01-01 17:58:00.612903483 -0600
+@@ -165,26 +165,11 @@
+   if (function != NULL)
+     {
+-      if (__builtin_strcmp (function, "makecontext") == 0)
++      if (__builtin_strcmp (function, "makecontext") == 0
++          || __builtin_strcmp (function, "libucontext_makecontext") == 0
++          || __builtin_strcmp (function, "runtime_mstart") == 0
++          || __builtin_strcmp (function, "runtime.kickoff") == 0
++          || __builtin_strcmp (function, "runtime.main") == 0)
+ 	return 1;
+-      if (filename != NULL)
+-	{
+-	  const char *p;
+-
+-	  p = strrchr (filename, '/');
+-	  if (p == NULL)
+-	    p = filename;
+-	  if (__builtin_strcmp (p, "/proc.c") == 0)
+-	    {
+-	      if (__builtin_strcmp (function, "runtime_mstart") == 0)
+-		return 1;
+-	    }
+-	  else if (__builtin_strcmp (p, "/proc.go") == 0)
+-	    {
+-	      if (__builtin_strcmp (function, "runtime.kickoff") == 0
+-		  || __builtin_strcmp (function, "runtime.main") == 0)
+-		return 1;
+-	    }
+-	}
+     }
+ 
+   return arg->index >= arg->max;
