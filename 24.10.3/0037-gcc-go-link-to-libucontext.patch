@@ -29,8 +29,8 @@ that this could have caused other issues we've seen in gccgo as well.
 
 Additionally, since we strip libgo.so, filename is always NULL.  This caused
 the unwinder to continue through runtime_mstart which caused the same issue.
---- libgo/runtime/go-callers.c.old	2023-01-01 17:56:27.302982459 -0600
-+++ libgo/runtime/go-callers.c	2023-01-01 17:58:00.612903483 -0600
+--- a/libgo/runtime/go-callers.c.old	2023-01-01 17:56:27.302982459 -0600
++++ b/libgo/runtime/go-callers.c	2023-01-01 17:58:00.612903483 -0600
 @@ -165,26 +165,11 @@
    if (function != NULL)
      {
