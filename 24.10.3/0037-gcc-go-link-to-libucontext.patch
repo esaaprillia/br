@@ -1,22 +1,90 @@
-From d75682b8d1aedc5d81c8e4c3e329171a62c2ff23 Mon Sep 17 00:00:00 2001
-From: esaaprillia <esaapriliasalsabila@gmail.com>
-Date: Tue, 30 Sep 2025 09:38:41 +0800
-Subject: [PATCH] Add files via upload
+From be8433e826a95135601ec920e3b1a6a39cb09dbc Mon Sep 17 00:00:00 2001
+From: Predators <31931530+predators46@users.noreply.github.com>
+Date: Tue, 30 Sep 2025 15:26:33 +0800
+Subject: [PATCH] Update go-signal.c
 
 ---
- Makefile.in | 2 +-
+ libgo/runtime/go-signal.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Makefile.in b/Makefile.in
-index 205d3c3..ce41dc8 100644
---- a/Makefile.in
-+++ b/Makefile.in
-@@ -52324,7 +52324,7 @@ configure-target-libgo:
- 	module_srcdir=libgo; \
- 	rm -f no-such-file || : ; \
- 	CONFIG_SITE=no-such-file $(SHELL) \
--	  $$s/$$module_srcdir/configure \
-+	  $$s/$$module_srcdir/configure LIBS="-lucontext" \
- 	  --srcdir=$${topdir}/$$module_srcdir \
- 	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
- 	  --target=${target_alias}  \
+diff --git a/libgo/runtime/go-signal.c b/libgo/runtime/go-signal.c
+index aa1b6305ad09d..20d01a683089b 100644
+--- a/libgo/runtime/go-signal.c
++++ b/libgo/runtime/go-signal.c
+@@ -8,7 +8,7 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sys/time.h>
+-#include <ucontext.h>
++#include <signal.h>
+ 
+ #include "runtime.h"
+ 
+From bf5cc82524336994bbdcd71e27817f4bf961e9fd Mon Sep 17 00:00:00 2001
+From: Predators <31931530+predators46@users.noreply.github.com>
+Date: Tue, 30 Sep 2025 15:29:51 +0800
+Subject: [PATCH] Update runtime.h
+
+---
+ libgo/runtime/runtime.h | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/libgo/runtime/runtime.h b/libgo/runtime/runtime.h
+index 699770d53add4..4ca2ee6e5b766 100644
+--- a/libgo/runtime/runtime.h
++++ b/libgo/runtime/runtime.h
+@@ -17,7 +17,6 @@
+ #include <unistd.h>
+ #include <pthread.h>
+ #include <semaphore.h>
+-#include <ucontext.h>
+ 
+ #ifdef HAVE_SYS_MMAN_H
+ #include <sys/mman.h>
+
+From ebde00f328334a871499478ce7ca6ac229427144 Mon Sep 17 00:00:00 2001
+From: Predators <31931530+predators46@users.noreply.github.com>
+Date: Tue, 30 Sep 2025 15:33:32 +0800
+Subject: [PATCH] Update sysinfo.c
+
+---
+ libgo/sysinfo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgo/sysinfo.c b/libgo/sysinfo.c
+index 180f5c31d7427..ff111006f3a83 100644
+--- a/libgo/sysinfo.c
++++ b/libgo/sysinfo.c
+@@ -16,7 +16,7 @@
+ #include <dirent.h>
+ #include <errno.h>
+ #include <fcntl.h>
+-#include <ucontext.h>
++#include <signal.h>
+ #include <netinet/in.h>
+ /* <netinet/tcp.h> needs u_char/u_short, but <sys/bsd_types> is only
+    included by <netinet/in.h> if _SGIAPI (i.e. _SGI_SOURCE
+
+From c5cf8f817f1f6bb7b8dc45b2e28cb3702f6d2691 Mon Sep 17 00:00:00 2001
+From: Predators <31931530+predators46@users.noreply.github.com>
+Date: Tue, 30 Sep 2025 15:44:37 +0800
+Subject: [PATCH] Update tsan_shared.go
+
+---
+ libgo/misc/cgo/testsanitizers/testdata/tsan_shared.go | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/libgo/misc/cgo/testsanitizers/testdata/tsan_shared.go b/libgo/misc/cgo/testsanitizers/testdata/tsan_shared.go
+index 55ff67ecbafc4..364d089d6a032 100644
+--- a/libgo/misc/cgo/testsanitizers/testdata/tsan_shared.go
++++ b/libgo/misc/cgo/testsanitizers/testdata/tsan_shared.go
+@@ -17,7 +17,6 @@ package main
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <ucontext.h>
+ 
+ void check_params(int signo, siginfo_t *info, void *context) {
+ 	ucontext_t* uc = (ucontext_t*)(context);
+
+
