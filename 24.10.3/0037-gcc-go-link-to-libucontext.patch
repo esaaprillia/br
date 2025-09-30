@@ -87,4 +87,51 @@ index 55ff67ecbafc4..364d089d6a032 100644
  void check_params(int signo, siginfo_t *info, void *context) {
  	ucontext_t* uc = (ucontext_t*)(context);
 
+From b5bbdf097620d19c849271ba544ed955aab6d8cd Mon Sep 17 00:00:00 2001
+From: Predators <31931530+predators46@users.noreply.github.com>
+Date: Tue, 30 Sep 2025 15:57:29 +0800
+Subject: [PATCH] Update configure.ac
+
+---
+ libgo/configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgo/configure.ac b/libgo/configure.ac
+index a59aa091d1dce..f1dbb495ac6fa 100644
+--- a/libgo/configure.ac
++++ b/libgo/configure.ac
+@@ -720,7 +720,7 @@ AC_RUN_IFELSE(
+   [AC_LANG_SOURCE([
+ #include <pthread.h>
+ #include <stdlib.h>
+-#include <ucontext.h>
++#include <signal.h>
+ #include <unistd.h>
+ 
+ __thread int tls;
+
+From 00878f9a57857bf401c1f2a80816e83a25c2ff32 Mon Sep 17 00:00:00 2001
+From: esaaprillia <esaapriliasalsabila@gmail.com>
+Date: Tue, 30 Sep 2025 16:02:23 +0800
+Subject: [PATCH] Update configure
+
+---
+ libgo/configure | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgo/configure b/libgo/configure
+index a607dbf..0eea711 100644
+--- a/libgo/configure
++++ b/libgo/configure
+@@ -15868,7 +15868,7 @@ else
+ 
+ #include <pthread.h>
+ #include <stdlib.h>
+-#include <ucontext.h>
++#include <signal.h>
+ #include <unistd.h>
+ 
+ __thread int tls;
+
+
 
