@@ -52324,7 +52324,7 @@ configure-target-libgo:
 	module_srcdir=libgo; \
 	rm -f no-such-file || : ; \
 	CONFIG_SITE=no-such-file $(SHELL) \
-	  $$s/$$module_srcdir/configure \
+	  $$s/$$module_srcdir/configure LIBS="-lucontext" \
 	  --srcdir=$${topdir}/$$module_srcdir \
 	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
 	  --target=${target_alias}  \
