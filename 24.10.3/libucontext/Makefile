@@ -22,9 +22,9 @@ PKG_CPE_ID:=
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/meson.mk
 
-#CFLAGS="$(HOST_CFLAGS) $(HOST_FPIC) -DEXPORT_UNPREFIXED"
+HOST_CFLAGS += $(HOST_FPIC)
 
 MESON_HOST_ARGS += \
-	-Ddefault_library=both
+	-Ddefault_library=static
 
 $(eval $(call HostBuild))
