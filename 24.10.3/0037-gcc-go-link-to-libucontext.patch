@@ -1,31 +1,22 @@
---- a/Makefile.in.old	2018-06-21 22:16:35.167781541 -0500
-+++ b/Makefile.in	2018-06-22 00:36:13.849486086 -0500
-@@ -52324,7 +52324,7 @@
- 	esac; \
+From d75682b8d1aedc5d81c8e4c3e329171a62c2ff23 Mon Sep 17 00:00:00 2001
+From: esaaprillia <esaapriliasalsabila@gmail.com>
+Date: Tue, 30 Sep 2025 09:38:41 +0800
+Subject: [PATCH] Add files via upload
+
+---
+ Makefile.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index 205d3c3..ce41dc8 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -52324,7 +52324,7 @@ configure-target-libgo:
  	module_srcdir=libgo; \
  	rm -f no-such-file || : ; \
--	CONFIG_SITE=no-such-file $(SHELL) \
-+	CONFIG_SITE=no-such-file LIBS="-lucontext $$LIBS" $(SHELL) \
- 	  $$s/$$module_srcdir/configure \
+ 	CONFIG_SITE=no-such-file $(SHELL) \
+-	  $$s/$$module_srcdir/configure \
++	  $$s/$$module_srcdir/configure LIBS="-lucontext" \
  	  --srcdir=$${topdir}/$$module_srcdir \
  	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
-
---- a/libgo/runtime/runtime.h
-+++ b/libgo/runtime/runtime.h
-@@ -500,10 +500,13 @@ int __go_setcontext(__go_context_t*);
- void __go_makecontext(__go_context_t*, void (*)(), void*, size_t);
- #else
- #define __go_context_t	ucontext_t
--#define __go_getcontext(c)	getcontext(c)
--#define __go_setcontext(c)	setcontext(c)
-+int  libucontext_getcontext(__go_context_t *);
-+void libucontext_makecontext(__go_context_t *, void (*)(), int, ...);
-+int  libucontext_setcontext(const __go_context_t *);
-+#define __go_getcontext(c)	libucontext_getcontext(c)
-+#define __go_setcontext(c)	libucontext_setcontext(c)
- #define __go_makecontext(c, fn, sp, size) \
--	((c)->uc_stack.ss_sp = sp, (c)->uc_stack.ss_size = size, makecontext(c, fn, 0))
-+	((c)->uc_stack.ss_sp = sp, (c)->uc_stack.ss_size = size, libucontext_makecontext(c, fn, 0))
- #endif
- 
- // Symbols defined by the linker.
+ 	  --target=${target_alias}  \
