@@ -133,9 +133,21 @@ index a607dbf..0eea711 100644
  
  __thread int tls;
 
---- a/libgo/runtime/go-callers.c.old	2023-01-01 17:56:27.302982459 -0600
-+++ b/libgo/runtime/go-callers.c	2023-01-01 17:58:00.612903483 -0600
-@@ -165,26 +165,11 @@
+From fa3f1612ff60b43deedd1b4254e71a4f3b3dfcf5 Mon Sep 17 00:00:00 2001
+From: firmwarecostum <145313986+firmwarecostum@users.noreply.github.com>
+Date: Wed, 1 Oct 2025 14:36:10 +0800
+Subject: [PATCH] Update go-callers.c
+
+---
+ libgo/runtime/go-callers.c | 24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
+
+diff --git a/libgo/runtime/go-callers.c b/libgo/runtime/go-callers.c
+index 1d4dee662799c..5ae4b61e8117c 100644
+--- a/libgo/runtime/go-callers.c
++++ b/libgo/runtime/go-callers.c
+@@ -164,27 +164,11 @@ callback (void *data, uintptr_t pc, const char *filename, int lineno,
+      Solaris (http://gcc.gnu.org/PR52583 comment #21).  */
    if (function != NULL)
      {
 -      if (__builtin_strcmp (function, "makecontext") == 0)
@@ -166,4 +178,7 @@ index a607dbf..0eea711 100644
      }
  
    return arg->index >= arg->max;
+
+
+
 
