@@ -62,6 +62,7 @@
 #define ROMIOCONF_H_INCLUDED
 #endif
 
+#include <stdint.h>
 #include "mpi.h"
 #include "mpio.h"
 #ifdef HAVE_FCNTL_H
