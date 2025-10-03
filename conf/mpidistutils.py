@@ -378,7 +378,7 @@ class ConfigureMPI:
             level = log.set_threshold(log.WARN)
         try:
             body = self.gen_test(code)
-            headers = ["stdlib.h", "mpi.h"]
+            headers = ["stdint.h", "stdlib.h", "mpi.h"]
             ok = self.config_cmd.try_link(body, headers=headers, lang=lang)
             return ok
         finally:
@@ -970,7 +970,7 @@ def configure_dl(ext, config_cmd):
 def configure_mpi(ext, config_cmd):
     from textwrap import dedent
 
-    headers = ["stdlib.h", "mpi.h"]
+    headers = ["stdint.h", "stdlib.h", "mpi.h"]
     #
     log.info("checking for MPI compile and link ...")
     ConfigTest = dedent("""\
