@@ -1,25 +1,22 @@
-From 9e7be29ad618d48740f42c98ba93e8367341b63f Mon Sep 17 00:00:00 2001
-From: "A. Wilcox" <AWilcox@Wilcox-Tech.com>
-Date: Mon, 31 Aug 2020 08:59:40 +0200
-Subject: [PATCH] gcc-go: link to libucontext
+From 118b8240476469d3fb9fff1c035646fe4cb03e0b Mon Sep 17 00:00:00 2001
+From: firmwarecostum <145313986+firmwarecostum@users.noreply.github.com>
+Date: Mon, 13 Oct 2025 19:11:48 +0800
+Subject: [PATCH] Update Make-lang.in
 
 ---
- Makefile.in | 2 +-
+ gcc/go/Make-lang.in | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Makefile.in b/Makefile.in
-index 426949aa91c..f97db1ef569 100644
---- a/Makefile.in
-+++ b/Makefile.in
-@@ -50331,7 +50331,7 @@ configure-target-libgo:
- 	esac; \
- 	module_srcdir=libgo; \
- 	rm -f no-such-file || : ; \
--	CONFIG_SITE=no-such-file $(SHELL) \
-+	CONFIG_SITE=no-such-file LIBS="/home/runner/work/amlogic-s9xxx-openwrt/amlogic-s9xxx-openwrt/imagebuilder/bin/targets/armsr/armv8/openwrt/staging_dir/host/lib -lucontext $$LIBS" $(SHELL) \
- 	  $$s/$$module_srcdir/configure \
- 	  --srcdir=$${topdir}/$$module_srcdir \
- 	  $(TARGET_CONFIGARGS) --build=${build_alias} --host=${target_alias} \
--- 
-2.34.1
-
+diff --git a/gcc/go/Make-lang.in b/gcc/go/Make-lang.in
+index a1f2977965e82..ca7a4d9e8f4c2 100644
+--- a/gcc/go/Make-lang.in
++++ b/gcc/go/Make-lang.in
+@@ -83,7 +83,7 @@ go_OBJS = $(GO_OBJS) go/gospec.o
+ go1$(exeext): $(GO_OBJS) attribs.o $(BACKEND) $(LIBDEPS) $(go.prev)
+ 	@$(call LINK_PROGRESS,$(INDEX.go),start)
+ 	+$(LLINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
+-	      $(GO_OBJS) attribs.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
++	      $(GO_OBJS) attribs.o $(BACKEND) $(LIBS) $(BACKENDLIBS) -lucontext -lucontext_posix
+ 	@$(call LINK_PROGRESS,$(INDEX.go),end)
+ 
+ # Documentation.
