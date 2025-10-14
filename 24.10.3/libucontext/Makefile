@@ -25,6 +25,6 @@ include $(INCLUDE_DIR)/meson.mk
 HOST_CFLAGS += $(HOST_FPIC)
 
 MESON_HOST_ARGS += \
-	-Ddefault_library=static
+	-Ddefault_library=both
 
 $(eval $(call HostBuild))
