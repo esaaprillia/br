@@ -78,7 +78,7 @@ TAR_OPTIONS += \
 # this needs to be without -L/-lzstd flags or other parts fail to build
 # use an absolute path to ensure it really picks up our version
 export ac_cv_search_ZSTD_compress=$(STAGING_DIR_HOST)/lib/libzstd.a -pthread
-export ac_cv_search_makecontext=$(STAGING_DIR_HOST)/lib/libucontext_posix.so.1 -pthread
+export ac_cv_search_makecontext=$(STAGING_DIR_HOST)/lib/libucontext.so.1 -pthread
 export libgcc_cv_fixed_point=no
 ifdef CONFIG_INSTALL_GCCGO
   export libgo_cv_c_split_stack_supported=no
