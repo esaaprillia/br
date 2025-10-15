@@ -7995,7 +7995,7 @@ PY_STDLIB_MOD_SIMPLE([unicodedata])
 # LIBHACL_CFLAGS: compiler flags passed for HACL* and HACL*-based modules
 # LIBHACL_LDFLAGS: linker flags passed for HACL* and HACL*-based modules
 LIBHACL_FLAG_I='-I$(srcdir)/Modules/_hacl -I$(srcdir)/Modules/_hacl/include'
-LIBHACL_FLAG_D='-D_BSD_SOURCE -D_DEFAULT_SOURCE'
+LIBHACL_FLAG_D=''
 case "$ac_sys_system" in
   Linux*)
     if test "$ac_cv_func_explicit_bzero" = "no"; then
