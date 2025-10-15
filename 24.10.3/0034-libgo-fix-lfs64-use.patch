@@ -193,17 +193,17 @@ index 180f5c31d74..1d717d55c0e 100644
 -- 
 2.41.0
 
-From b40728b869f76e1d8e95e0418b63c4d6f0c9796a Mon Sep 17 00:00:00 2001
+From 26a0a95c478eca19128b822591c0fa9918f0c20e Mon Sep 17 00:00:00 2001
 From: Predators <31931530+predators46@users.noreply.github.com>
-Date: Wed, 15 Oct 2025 18:29:53 +0800
+Date: Wed, 15 Oct 2025 20:45:53 +0800
 Subject: [PATCH] Update go-nosys.c
 
 ---
- libgo/runtime/go-nosys.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ libgo/runtime/go-nosys.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/libgo/runtime/go-nosys.c b/libgo/runtime/go-nosys.c
-index 30222df781599..db88952fe0a1a 100644
+index 30222df781599..d2612fe0f847a 100644
 --- a/libgo/runtime/go-nosys.c
 +++ b/libgo/runtime/go-nosys.c
 @@ -28,11 +28,11 @@
@@ -249,12 +249,14 @@ index 30222df781599..db88952fe0a1a 100644
  tee (int fd_in __attribute__ ((unused)),
       int fd_out __attribute__ ((unused)),
       size_t len __attribute__ ((unused)),
-@@ -505,7 +505,7 @@ strerror_r (int errnum, char *buf, size_t buflen)
+@@ -505,8 +505,8 @@ strerror_r (int errnum, char *buf, size_t buflen)
  #endif /* ! HAVE_STRERROR_R */
  
  #ifndef HAVE_SYSCALL
 -int
+-syscall(int number __attribute__ ((unused)), ...)
 +long
- syscall(int number __attribute__ ((unused)), ...)
++syscall(long number __attribute__ ((unused)), ...)
  {
    errno = ENOSYS;
+   return -1;
