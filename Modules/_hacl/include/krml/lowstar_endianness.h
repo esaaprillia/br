@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <inttypes.h>
+#include <endian.h>
 
 /******************************************************************************/
 /* Implementing C.fst (part 2: endian-ness macros)                            */
