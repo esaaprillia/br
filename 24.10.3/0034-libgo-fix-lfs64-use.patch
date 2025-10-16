@@ -260,3 +260,26 @@ index 30222df781599..d2612fe0f847a 100644
  {
    errno = ENOSYS;
    return -1;
+
+From c49755e1edb2e313e3a641cce4590a3eb4f9390d Mon Sep 17 00:00:00 2001
+From: firmwarecostum <145313986+firmwarecostum@users.noreply.github.com>
+Date: Thu, 16 Oct 2025 13:47:35 +0800
+Subject: [PATCH] Update go-setenv.c
+
+---
+ libgo/runtime/go-setenv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgo/runtime/go-setenv.c b/libgo/runtime/go-setenv.c
+index 08987def8af8d..af599320ef5ba 100644
+--- a/libgo/runtime/go-setenv.c
++++ b/libgo/runtime/go-setenv.c
+@@ -59,7 +59,7 @@ setenv_c (String k, String v)
+ 
+ #else /* !defined(HAVE_SETENV) */
+ 
+-  len = k.len + v.len + 2;
++  int len = k.len + v.len + 2;
+   kn = malloc (len);
+   if (kn == NULL)
+     runtime_throw ("out of malloc memory");
