@@ -35,3 +35,4 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/orcConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/orcConfigVersion.cmake
   DESTINATION ${ORC_INSTALL_CMAKE_DIR})
+
