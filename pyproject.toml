@@ -1,32 +1,50 @@
-# Generated from:
-# https://github.com/zopefoundation/meta/tree/master/config/pure-python
+# Copyright 2022 Collabora Ltd.
+# SPDX-License-Identifier: MIT
 
 [build-system]
+build-backend = 'mesonpy'
 requires = [
-    "setuptools",
-    "wheel",
-]
-build-backend = "setuptools.build_meta"
-
-[tool.coverage.run]
-branch = true
-source = ["zope.event"]
-
-[tool.coverage.report]
-fail_under = 100
-precision = 2
-ignore_errors = true
-show_missing = true
-exclude_lines = [
-    "pragma: no cover",
-    "pragma: nocover",
-    "except ImportError:",
-    "raise NotImplementedError",
-    "if __name__ == '__main__':",
-    "self.fail",
-    "raise AssertionError",
-    "raise unittest.Skip",
+    'meson-python>=0.8.1',
+    'meson>=0.60.0',
+    'ninja',
+    'patchelf',
+    'setuptools',
+    'wheel',
 ]
 
-[tool.coverage.html]
-directory = "parts/htmlcov"
+[project]
+name = 'dbus-python'
+license = { text = 'Expat (MIT/X11)' }
+description = 'Python bindings for libdbus'
+maintainers = [
+    { name = 'The D-Bus maintainers', email = 'dbus@lists.freedesktop.org' },
+]
+requires-python = '>=3.7'
+readme = { file = 'README', content-type = 'text/x-rst' }
+keywords = ['dbus', 'D-Bus']
+classifiers = [
+    'Development Status :: 7 - Inactive',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: C',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Topic :: Software Development :: Object Brokering',
+]
+dynamic = [
+    'version'
+]
+
+[project.optional-dependencies]
+doc = [
+    'sphinx',
+    'sphinx_rtd_theme',
+]
+test = [
+    'tap.py',
+]
+
+[project.urls]
+homepage = 'http://www.freedesktop.org/wiki/Software/DBusBindings/#python'
+download = 'http://dbus.freedesktop.org/releases/dbus-python/'
+source = 'https://gitlab.freedesktop.org/dbus/dbus-python/'
+tracker = 'https://gitlab.freedesktop.org/dbus/dbus-python/-/issues'
