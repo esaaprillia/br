@@ -40,7 +40,7 @@ if (
     setup_requires = ['setuptools', 'wheel']
 else:
     use_autotools = False
-    setup_requires = ['meson>=0.60.0', 'ninja', 'setuptools', 'wheel']
+    setup_requires = ['meson>=0.60.0', 'setuptools', 'wheel']
 
 if os.path.exists('.version'):
     version = open('.version').read().strip()
