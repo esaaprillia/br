@@ -31,7 +31,7 @@ elif not glslang_req.disabled()
     static   = arg[0]
     required = arg[1]
 
-    spirv = cxx.find_library('SPIRV', required: required, static: static)
+    spirv = cxx.find_library('SPIRV', required: false, static: false)
 
     if not spirv.found()
       continue
