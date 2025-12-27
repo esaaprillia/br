@@ -17,6 +17,8 @@ if glslang_req.auto() and shaderc.found()
 elif not glslang_req.disabled()
 
   glslang_deps = [
+    cxx.find_library('glslang', required: false),
+    cxx.find_library('SPIRV', required: false),
     cxx.find_library('glslang-default-resource-limits', required: false)
   ]
 
@@ -31,7 +33,7 @@ elif not glslang_req.disabled()
     static   = arg[0]
     required = arg[1]
 
-    spirv = cxx.find_library('SPIRV', required: required, static: static)
+    spirv = cxx.find_library('SPIRV', required: false, static: false)
 
     if not spirv.found()
       continue
