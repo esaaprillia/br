@@ -75,12 +75,12 @@ test:	/tmp/test.wav ../snd/noise.wav always
 	@echo Test complete.
 
 install:	targets
-	-mkdir -p $(INSTALL_PLUGINS_DIR)
-	-mkdir -p $(INSTALL_INCLUDE_DIR)
-	-mkdir -p $(INSTALL_BINARY_DIR)
-	cp ../plugins/* $(INSTALL_PLUGINS_DIR)
-	cp ladspa.h $(INSTALL_INCLUDE_DIR)
-	cp ../bin/* $(INSTALL_BINARY_DIR)
+	-mkdir -p $(PKG_INSTALL_DIR)/usr/lib/ladspa
+	-mkdir -p $(PKG_INSTALL_DIR)//usr/include
+	-mkdir -p $(PKG_INSTALL_DIR)/usr/bin
+	cp ../plugins/* $(PKG_INSTALL_DIR)/usr/lib/ladspa
+	cp ladspa.h $(PKG_INSTALL_DIR)//usr/include
+	cp ../bin/* $(PKG_INSTALL_DIR)/usr/bin
 
 /tmp/test.wav:	targets ../snd/noise.wav
 	../bin/listplugins
