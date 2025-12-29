@@ -23,7 +23,7 @@ elif not glslang_req.disabled()
   # meson doesn't respect generator expressions in INTERFACE_LINK_LIBRARIES
   # https://github.com/mesonbuild/meson/issues/8232
   # TODO: Use the following once it's fixed
-  # glslang = dependency('glslang', method: 'cmake', modules: ['glslang::SPIRV'])
+  glslang = dependency('glslang', method: 'cmake', modules: ['glslang::SPIRV'])
 
   prefer_static = get_option('prefer_static')
   found_lib = false
