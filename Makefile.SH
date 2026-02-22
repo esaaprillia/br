@@ -703,7 +703,7 @@ perl$(OBJ_EXT): git_version.h
 # loading, we need to build perl first.
 case "$usedl$static_cwd" in
 defineundef)
-    util_deps='$(MINIPERL_EXE) $(CONFIGPM) lib/auto/Cwd/Cwd$(DLSUFFIX) FORCE'
+    util_deps='$(MINIPERL_EXE) $(CONFIGPM) FORCE'
     ;;
 definedefine)
     util_deps='$(PERL_EXE) $(CONFIGPM) FORCE'
