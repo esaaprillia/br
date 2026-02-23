@@ -325,7 +325,7 @@ STATIC_LDFLAGS = $static_ldflags
 
 # The following is used to include the current directory in
 # the dynamic loader path you are building a shared libperl.
-LDLIBPTH = $ldlibpth
+LDLIBPTH = LD_LIBRARY_PATH=$(PKG_BUILD_DIR):$(STAGING_DIR_HOSTPKG)/lib:$(STAGING_DIR_HOSTPKG)/usr/lib
 
 # Sometimes running an executable is an adventure.
 RUN = 
