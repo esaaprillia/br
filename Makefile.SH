@@ -196,7 +196,7 @@ static_cwd='define'
 list_util_dep='$(PERL_EXE)'
 for f in $dynamic_ext; do
    case $f in
-       Cwd) static_cwd='undef' ;;
+       Cwd) static_cwd='define' ;;
        List/Util) list_util_dep=lib/auto/List/Util/Util.$dlext ;;
    esac
 done
