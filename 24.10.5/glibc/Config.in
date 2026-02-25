@@ -290,6 +290,7 @@ choice
 	config LIBC_USE_GLIBC
 		bool "Use glibc"
 		select USE_GLIBC
+		default y
 
 	config LIBC_USE_MUSL
 		select USE_MUSL
