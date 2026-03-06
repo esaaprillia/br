@@ -54,6 +54,7 @@ from .client_reqrep import ClientRequest, Fingerprint, _merge_ssl_params
 from .helpers import (
     _SENTINEL,
     ceil_timeout,
+    get_running_loop,
     is_ip_address,
     noop,
     sentinel,
@@ -154,7 +155,7 @@ class Connection:
     ) -> None:
         self._key = key
         self._connector = connector
-        self._loop = loop
+        self._loop = loop or get_running_loop()
         self._protocol: Optional[ResponseHandler] = protocol
         self._callbacks: List[Callable[[], None]] = []
 
