@@ -359,7 +359,7 @@ class CCompiler(object):
 
         # Do not add -Wall when using init code as we do not include any
         # header of the library being introspected
-        if self.compiler_cmd == 'gcc' and not init_sections:
+        if self.compiler_cmd == 'CC' and not init_sections:
             extra_postargs.append('-Wall')
         extra_postargs.append(self._cflags_no_deprecation_warnings)
 
