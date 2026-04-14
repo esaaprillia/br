@@ -1,0 +1,12 @@
+diff -Nuar a/ext/POSIX/POSIX.xs b/ext/POSIX/POSIX.xs
+--- a/ext/POSIX/POSIX.xs	2024-10-19 15:44:00.183420000 +0800
++++ b/ext/POSIX/POSIX.xs	2024-10-19 15:55:57.694468528 +0800
+@@ -3660,7 +3660,7 @@
+ 	char *		s = 0;
+     CODE:
+ #ifdef HAS_CUSERID
+-  RETVAL = cuserid(s);
++  RETVAL = (char *)cuserid(s);
+ #else
+   PERL_UNUSED_VAR(s);
+   RETVAL = 0;
