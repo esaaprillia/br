@@ -33,6 +33,10 @@ HOST_BUILD_PARALLEL:=1
 # Variables used during configuration/build
 HOST_PERL_PREFIX:=$(STAGING_DIR_HOSTPKG)/usr
 
+ifneq ($(CONFIG_USE_GLIBC),)
+  TARGET_CFLAGS += -D_GNU_SOURCE
+endif
+
 ifneq ($(CONFIG_USE_MUSL),)
   TARGET_CFLAGS += -D_LARGEFILE64_SOURCE
 endif
