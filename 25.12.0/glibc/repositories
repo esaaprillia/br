@@ -6,7 +6,3 @@
 #https://downloads.openwrt.org/releases/25.12.2/packages/aarch64_generic/routing/packages.adb
 #https://downloads.openwrt.org/releases/25.12.2/packages/aarch64_generic/telephony/packages.adb
 #https://downloads.openwrt.org/releases/25.12.2/packages/aarch64_generic/video/packages.adb
-
-src imagebuilder file:packages
-
-option check_signature
