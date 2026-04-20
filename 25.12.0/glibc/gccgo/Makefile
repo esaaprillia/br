@@ -843,4 +843,3 @@ $(eval $(call BuildPackage,libgo))
 $(eval $(call BuildPackage,libgomp))
 $(eval $(call BuildPackage,ldd))
 $(eval $(call BuildPackage,ldconfig))
-
