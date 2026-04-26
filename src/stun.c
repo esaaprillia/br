@@ -67,6 +67,12 @@
  *
  */
 
+#include <cassert>
+#include <cstring>
+#include <iostream>
+#include <cstdlib>
+#include <errno.h>
+
 #ifdef HAVE_CONFIG_H
 #include "ortp-config.h"
 #endif
