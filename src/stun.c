@@ -1640,7 +1640,7 @@ stunServerProcessMsg( char* buf,
                      }
 #endif
 							
-                     if (memcmp(buf, hmac, 20) != 0)
+                     if (memcmp(buf, hmac, 20) != NULL)
                      {
                         ortp_error("stun: SA_MESSAGEINTEGRITY is bad. Sending ");
                         stunCreateErrorResponse(resp, 4, 3, "Unknown username. Try test with password 1234");
