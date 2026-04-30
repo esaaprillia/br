@@ -1,214 +1,188 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5 FATAL_ERROR)
+########################################################################
+# Project setup
+########################################################################
+cmake_minimum_required(VERSION 3.1.0)
+project(SoapySDR)
+enable_language(CXX)
+enable_testing()
 
-# ---[ Project
-PROJECT(pthreadpool C)
+# Enable newer CMake policies if available
+if(POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW) # option() honors normal variables
+endif()
+if(POLICY CMP0078)
+    cmake_policy(SET CMP0078 NEW) # UseSWIG generates standard target names
+endif()
+if(POLICY CMP0086)
+    cmake_policy(SET CMP0086 NEW) # UseSWIG honors SWIG_MODULE_NAME via -module flag
+endif()
+if(POLICY CMP0068)
+    cmake_policy(SET CMP0068 NEW) # RPATH settings on macOS do not affect install_name
+endif()
 
-# ---[ Options.
-SET(PTHREADPOOL_LIBRARY_TYPE "default" CACHE STRING "Type of library (shared, static, or default) to build")
-SET_PROPERTY(CACHE PTHREADPOOL_LIBRARY_TYPE PROPERTY STRINGS default static shared)
-OPTION(PTHREADPOOL_ALLOW_DEPRECATED_API "Enable deprecated API functions" ON)
-SET(PTHREADPOOL_SYNC_PRIMITIVE "default" CACHE STRING "Synchronization primitive (condvar, futex, gcd, event, or default) for worker threads")
-SET_PROPERTY(CACHE PTHREADPOOL_SYNC_PRIMITIVE PROPERTY STRINGS default condvar futex gcd event)
-IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?)$")
-  OPTION(PTHREADPOOL_ENABLE_FASTPATH "Enable fast path using atomic decrement instead of atomic compare-and-swap" ON)
-ELSE()
-  OPTION(PTHREADPOOL_ENABLE_FASTPATH "Enable fast path using atomic decrement instead of atomic compare-and-swap" OFF)
-ENDIF()
-IF("${CMAKE_SOURCE_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}")
-  OPTION(PTHREADPOOL_BUILD_TESTS "Build pthreadpool unit tests" ON)
-  OPTION(PTHREADPOOL_BUILD_BENCHMARKS "Build pthreadpool micro-benchmarks" ON)
-ELSE()
-  SET(PTHREADPOOL_BUILD_TESTS OFF CACHE BOOL "Build pthreadpool unit tests")
-  SET(PTHREADPOOL_BUILD_BENCHMARKS OFF CACHE BOOL "Build pthreadpool micro-benchmarks")
-ENDIF()
+#C++11 is a required language feature for this project
+set(CMAKE_CXX_STANDARD 11)
 
-# ---[ CMake options
-INCLUDE(GNUInstallDirs)
+########################################################################
+# gather version information
+# packagers may specify -DSOAPY_SDR_EXTVER="foo" to replace the git hash
+########################################################################
+file(READ "${PROJECT_SOURCE_DIR}/Changelog.txt" changelog_txt)
+string(REGEX MATCH "Release ([0-9]+\\.[0-9]+\\.[0-9]+) \\(" CHANGELOG_MATCH "${changelog_txt}")
+if(NOT CHANGELOG_MATCH)
+    message(FATAL_ERROR "Failed to extract version number from Changelog.txt")
+endif(NOT CHANGELOG_MATCH)
+set(SOAPY_SDR_LIBVER "${CMAKE_MATCH_1}")
 
-IF(PTHREADPOOL_BUILD_TESTS OR PTHREADPOOL_BUILD_BENCHMARKS)
-  ENABLE_LANGUAGE(CXX)
-ENDIF()
+if (NOT SOAPY_SDR_EXTVER)
+    include(${PROJECT_SOURCE_DIR}/cmake/Modules/GetGitRevisionDescription.cmake)
+    get_git_head_revision(GITREFSPEC GITHASH)
+    if (GITHASH)
+        string(SUBSTRING "${GITHASH}" 0 8 GITHASH)
+        set(SOAPY_SDR_EXTVER "g${GITHASH}")
+    else (GITHASH)
+        set(SOAPY_SDR_EXTVER "unknown")
+    endif (GITHASH)
+endif()
 
-IF(PTHREADPOOL_BUILD_TESTS)
-  ENABLE_TESTING()
-ENDIF()
+set(SOAPY_SDR_VERSION "${SOAPY_SDR_LIBVER}-${SOAPY_SDR_EXTVER}")
 
-MACRO(PTHREADPOOL_TARGET_ENABLE_CXX11 target)
-  SET_TARGET_PROPERTIES(${target} PROPERTIES
-    CXX_STANDARD 11
-    CXX_EXTENSIONS NO)
-ENDMACRO()
+#SOAPY_SDR_ROOT is compiled into the library to locate the install base.
+#By default, the SOAPY_SDR_ROOT is set to the CMAKE_INSTALL_PREFIX.
+#However users may overload this by specifying -DSOAPY_SDR_ROOT=<path>.
+set(SOAPY_SDR_ROOT "${CMAKE_INSTALL_PREFIX}" CACHE PATH
+    "Installation root for SoapySDR::getRootPath()")
+file(TO_CMAKE_PATH "${SOAPY_SDR_ROOT}" SOAPY_SDR_ROOT)
 
-# ---[ Download deps
-IF(NOT DEFINED FXDIV_SOURCE_DIR)
-  MESSAGE(STATUS "Downloading FXdiv to ${CMAKE_BINARY_DIR}/FXdiv-source (define FXDIV_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadFXdiv.cmake "${CMAKE_BINARY_DIR}/FXdiv-download/CMakeLists.txt")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/FXdiv-download")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/FXdiv-download")
-  SET(FXDIV_SOURCE_DIR "${CMAKE_BINARY_DIR}/FXdiv-source" CACHE STRING "FXdiv source directory")
-ENDIF()
+#SOAPY_SDR_ROOT_ENV is the name of the environment variable
+#which tells SoapySDR where to find the root installation.
+#By default, the environment variable SOAPY_SDR_ROOT is used.
+#Example: set -DSOAPY_SDR_ROOT_ENV=SNAP for snappy packages.
+set(SOAPY_SDR_ROOT_ENV "SOAPY_SDR_ROOT" CACHE STRING
+    "Environment variable for SoapySDR::getRootPath()")
 
-IF(PTHREADPOOL_BUILD_TESTS AND NOT DEFINED GOOGLETEST_SOURCE_DIR)
-  MESSAGE(STATUS "Downloading Google Test to ${CMAKE_BINARY_DIR}/googletest-source (define GOOGLETEST_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadGoogleTest.cmake "${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download")
-  SET(GOOGLETEST_SOURCE_DIR "${CMAKE_BINARY_DIR}/googletest-source" CACHE STRING "Google Test source directory")
-ENDIF()
+########################################################################
+# select the release build type by default to get optimization flags
+########################################################################
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE "Release")
+   message(STATUS "Build type not specified: defaulting to release.")
+endif(NOT CMAKE_BUILD_TYPE)
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
-IF(PTHREADPOOL_BUILD_BENCHMARKS AND NOT DEFINED GOOGLEBENCHMARK_SOURCE_DIR)
-  MESSAGE(STATUS "Downloading Google Benchmark to ${CMAKE_BINARY_DIR}/googlebenchmark-source (define GOOGLEBENCHMARK_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadGoogleBenchmark.cmake "${CMAKE_BINARY_DIR}/googlebenchmark-download/CMakeLists.txt")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googlebenchmark-download")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googlebenchmark-download")
-  SET(GOOGLEBENCHMARK_SOURCE_DIR "${CMAKE_BINARY_DIR}/googlebenchmark-source" CACHE STRING "Google Benchmark source directory")
-ENDIF()
+########################################################################
+# rpath setup - http://www.cmake.org/Wiki/CMake_RPATH_handling
+########################################################################
+# use, i.e. don't skip the full RPATH for the build tree
+option(CMAKE_SKIP_BUILD_RPATH "skip rpath build" FALSE)
 
-# ---[ pthreadpool library
-IF(PTHREADPOOL_ALLOW_DEPRECATED_API)
-  SET(PTHREADPOOL_SRCS src/legacy-api.c)
-ENDIF()
-IF(EMSCRIPTEN)
-  LIST(APPEND PTHREADPOOL_SRCS src/shim.c)
-ELSE()
-  LIST(APPEND PTHREADPOOL_SRCS src/portable-api.c src/memory.c)
-  IF(APPLE AND (PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "default" OR PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "gcd"))
-    LIST(APPEND PTHREADPOOL_SRCS src/gcd.c)
-  ELSEIF(CMAKE_SYSTEM_NAME MATCHES "^(Windows|CYGWIN|MSYS)$" AND (PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "default" OR PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "event"))
-    LIST(APPEND PTHREADPOOL_SRCS src/windows.c)
-  ELSE()
-    LIST(APPEND PTHREADPOOL_SRCS src/pthreads.c)
-  ENDIF()
-  IF(PTHREADPOOL_ENABLE_FASTPATH)
-    LIST(APPEND PTHREADPOOL_SRCS src/fastpath.c)
-  ENDIF()
-ENDIF()
+# when building, don't use the install RPATH already
+# (but later on when installing)
+option(CMAKE_BUILD_WITH_INSTALL_RPATH "build with install rpath" FALSE)
 
-ADD_LIBRARY(pthreadpool_interface INTERFACE)
-TARGET_INCLUDE_DIRECTORIES(pthreadpool_interface INTERFACE include)
-IF(NOT PTHREADPOOL_ALLOW_DEPRECATED_API)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool_interface INTERFACE PTHREADPOOL_NO_DEPRECATED_API=1)
-ENDIF()
-INSTALL(FILES include/pthreadpool.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# the RPATH to be used when installing, but only if it's not a system directory
+option(CMAKE_AUTOSET_INSTALL_RPATH TRUE)
+if(CMAKE_AUTOSET_INSTALL_RPATH)
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+ENDIF("${isSystemDir}" STREQUAL "-1")
+endif(CMAKE_AUTOSET_INSTALL_RPATH)
 
-IF(PTHREADPOOL_LIBRARY_TYPE STREQUAL "default")
-  ADD_LIBRARY(pthreadpool ${PTHREADPOOL_SRCS})
-ELSEIF(PTHREADPOOL_LIBRARY_TYPE STREQUAL "shared")
-  ADD_LIBRARY(pthreadpool SHARED ${PTHREADPOOL_SRCS})
-ELSEIF(PTHREADPOOL_LIBRARY_TYPE STREQUAL "static")
-  ADD_LIBRARY(pthreadpool STATIC ${PTHREADPOOL_SRCS})
-ELSE()
-  MESSAGE(FATAL_ERROR "Unsupported library type ${PTHREADPOOL_LIBRARY_TYPE}")
-ENDIF()
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+option(CMAKE_INSTALL_RPATH_USE_LINK_PATH "build with automatic rpath" TRUE)
 
-IF(PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "condvar")
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FUTEX=0)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_GCD=0)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_EVENT=0)
-ELSEIF(PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "futex")
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FUTEX=1)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_GCD=0)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_EVENT=0)
-ELSEIF(PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "gcd")
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FUTEX=0)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_GCD=1)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_EVENT=0)
-ELSEIF(PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "event")
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FUTEX=0)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_GCD=0)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_EVENT=1)
-ELSEIF(NOT PTHREADPOOL_SYNC_PRIMITIVE STREQUAL "default")
-  MESSAGE(FATAL_ERROR "Unsupported synchronization primitive ${PTHREADPOOL_SYNC_PRIMITIVE}")
-ENDIF()
-IF(PTHREADPOOL_ENABLE_FASTPATH)
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FASTPATH=1)
-ELSE()
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FASTPATH=0)
-ENDIF()
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+endif()
 
-SET_TARGET_PROPERTIES(pthreadpool PROPERTIES
-  C_STANDARD 11
-  C_EXTENSIONS NO)
-TARGET_LINK_LIBRARIES(pthreadpool PUBLIC pthreadpool_interface)
-TARGET_INCLUDE_DIRECTORIES(pthreadpool PRIVATE src)
-IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
-  SET(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-  IF(NOT CMAKE_GENERATOR STREQUAL "Xcode")
-    FIND_PACKAGE(Threads REQUIRED)
-  ENDIF()
-  IF(CMAKE_USE_PTHREADS_INIT)
-    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
-      TARGET_COMPILE_OPTIONS(pthreadpool PUBLIC -pthread)
-    ENDIF()
-  ENDIF()
-  TARGET_LINK_LIBRARIES(pthreadpool PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-ENDIF()
-IF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE _GNU_SOURCE=1)
-ENDIF()
+########################################################################
+# Allows in-tree module util
+########################################################################
+set(SoapySDR_DIR ${PROJECT_SOURCE_DIR}/cmake/Modules)
+set(SOAPY_SDR_IN_TREE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+find_package(SoapySDR CONFIG REQUIRED)
 
-# ---[ Configure FXdiv
-IF(NOT TARGET fxdiv)
-  SET(FXDIV_BUILD_TESTS OFF CACHE BOOL "")
-  SET(FXDIV_BUILD_BENCHMARKS OFF CACHE BOOL "")
-  ADD_SUBDIRECTORY(
-    "${FXDIV_SOURCE_DIR}"
-    "${CMAKE_BINARY_DIR}/FXdiv")
-ENDIF()
-TARGET_LINK_LIBRARIES(pthreadpool PRIVATE fxdiv)
+########################################################################
+# Install cmake helper modules
+########################################################################
+include(CMakePackageConfigHelpers)
+if (UNIX)
+    set(CMAKE_LIB_DEST ${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME})
+elseif (WIN32)
+    set(CMAKE_LIB_DEST cmake)
+endif ()
 
-INSTALL(TARGETS pthreadpool
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+write_basic_package_version_file(
+    ${PROJECT_BINARY_DIR}/SoapySDRConfigVersion.cmake
+    VERSION ${SOAPY_SDR_VERSION}
+    COMPATIBILITY AnyNewerVersion)
 
-IF(PTHREADPOOL_BUILD_TESTS)
-  # ---[ Build google test
-  IF(NOT TARGET gtest)
-    SET(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    ADD_SUBDIRECTORY(
-      "${GOOGLETEST_SOURCE_DIR}"
-      "${CMAKE_BINARY_DIR}/googletest")
-  ENDIF()
+install(FILES
+    ${PROJECT_SOURCE_DIR}/cmake/Modules/SoapySDRConfig.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/Modules/SoapySDRUtil.cmake
+    ${PROJECT_BINARY_DIR}/SoapySDRConfigVersion.cmake
+    DESTINATION ${CMAKE_LIB_DEST})
 
-  ADD_EXECUTABLE(pthreadpool-test test/pthreadpool.cc)
-  SET_TARGET_PROPERTIES(pthreadpool-test PROPERTIES
-    CXX_STANDARD 11
-    CXX_EXTENSIONS NO)
-  TARGET_LINK_LIBRARIES(pthreadpool-test pthreadpool gtest gtest_main)
-  ADD_TEST(pthreadpool pthreadpool-test)
+########################################################################
+# Install headers
+########################################################################
+install(DIRECTORY include/SoapySDR DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-  ADD_EXECUTABLE(pthreadpool-cxx-test test/pthreadpool-cxx.cc)
-  SET_TARGET_PROPERTIES(pthreadpool-cxx-test PROPERTIES
-    CXX_STANDARD 11
-    CXX_EXTENSIONS NO)
-  TARGET_LINK_LIBRARIES(pthreadpool-cxx-test pthreadpool gtest gtest_main)
-  ADD_TEST(pthreadpool-cxx pthreadpool-cxx-test)
-ENDIF()
+########################################################################
+# Build subdirs
+########################################################################
+add_subdirectory(lib)
+add_subdirectory(apps)
+add_subdirectory(tests)
+add_subdirectory(docs)
 
-IF(PTHREADPOOL_BUILD_BENCHMARKS)
-  # ---[ Build google benchmark
-  IF(NOT TARGET benchmark)
-    SET(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "")
-    ADD_SUBDIRECTORY(
-      "${GOOGLEBENCHMARK_SOURCE_DIR}"
-      "${CMAKE_BINARY_DIR}/googlebenchmark")
-  ENDIF()
+########################################################################
+# Python support (optional)
+########################################################################
+message(STATUS "")
+message(STATUS "#############################################")
+message(STATUS "## Begin configuration for Python support...")
+message(STATUS "#############################################")
+message(STATUS "Enabling optional Python bindings if possible...")
+add_subdirectory(python)
 
-  ADD_EXECUTABLE(latency-bench bench/latency.cc)
-  SET_TARGET_PROPERTIES(latency-bench PROPERTIES
-    CXX_STANDARD 11
-    CXX_EXTENSIONS NO)
-  TARGET_LINK_LIBRARIES(latency-bench pthreadpool benchmark)
+message(STATUS "")
+message(STATUS "#############################################")
+message(STATUS "## Begin configuration for Python3 support...")
+message(STATUS "#############################################")
+message(STATUS "Enabling optional Python3 bindings if possible...")
+add_subdirectory(python3)
 
-  ADD_EXECUTABLE(throughput-bench bench/throughput.cc)
-  SET_TARGET_PROPERTIES(throughput-bench PROPERTIES
-    CXX_STANDARD 11
-    CXX_EXTENSIONS NO)
-  TARGET_LINK_LIBRARIES(throughput-bench pthreadpool benchmark)
-ENDIF()
+
+########################################################################
+# uninstall target
+########################################################################
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+#only add uninstall target if this is the top project
+if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
+
+#########################################################################
+# summary
+#########################################################################
+include(FeatureSummary)
+message(STATUS "")
+message(STATUS "######################################################")
+message(STATUS "## ${PROJECT_NAME} enabled features")
+message(STATUS "######################################################")
+feature_summary(WHAT ENABLED_FEATURES)
+message(STATUS "######################################################")
+message(STATUS "## ${PROJECT_NAME} disabled features")
+message(STATUS "######################################################")
+feature_summary(WHAT DISABLED_FEATURES)
+message(STATUS "SoapySDR version: v${SOAPY_SDR_VERSION}")
+message(STATUS "ABI/so version: v${SOAPY_SDR_ABI_VERSION}")
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
