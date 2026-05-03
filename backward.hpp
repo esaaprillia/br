@@ -213,8 +213,9 @@
 #endif
 #include <signal.h>
 #include <sys/stat.h>
-#include <syscall.h>
+#include <sys/syscall.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #if BACKWARD_HAS_BFD == 1
 //              NOTE: defining PACKAGE{,_VERSION} is required before including
