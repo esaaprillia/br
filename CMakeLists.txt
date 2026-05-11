@@ -5,7 +5,7 @@ set(CppUTest_version_minor 0)
 
 # 2.6.3 is needed for ctest support
 # 3.1 is needed for target_sources
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1...3.10)
 
 ###############
 # Conan support
