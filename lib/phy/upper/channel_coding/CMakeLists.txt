@@ -34,7 +34,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     # If the compiler does not support the crypto features with the default compiler flags, try to append +crypto to -march.
     if (NOT HAVE_ARM_CRYPTO)
         message(STATUS "Current compile options do not support crypto features.")
-        set(MARCH "native" CACHE STRING "Compiler -march flag. Default value is 'native' for aarch64.")
+        set(MARCH "generic" CACHE STRING "Compiler -march flag. Default value is 'native' for aarch64.")
         message(STATUS "Current CPU value is ${MCPU}")
         message(STATUS "Current MARCH value is ${MARCH}")
 
