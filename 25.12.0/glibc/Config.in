@@ -303,13 +303,14 @@ config DROPBEAR_SVR_LOCALSTREAMFWD
 
 config DROPBEAR_X11FWD
 	bool "X11 forwarding"
+	default y
 	help
 		Supports X11 forwarding.
 
 		OpenWrt doesn't have any Xorg programs by default.
 		Server only.
 
-		Default: disabled.
+		Default: enabled.
 
 config DROPBEAR_SCP
 	bool "SCP file transfer program"
