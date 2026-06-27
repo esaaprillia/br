@@ -368,6 +368,33 @@ define Package/librt/config
 endef
 
 
+define Package/libmvec
+$(call Package/libc/Default)
+  TITLE:=Libmvec is vector math library added in Glibc
+  DEPENDS:=
+endef
+
+define Package/libmvec/config
+	menu "Configuration"
+	depends on EXTERNAL_TOOLCHAIN && PACKAGE_libmvec
+
+	config MVEC_ROOT_DIR
+		string
+		prompt "libmvec shared library base directory"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libmvec
+		default TOOLCHAIN_ROOT  if !NATIVE_TOOLCHAIN
+		default "/"  if NATIVE_TOOLCHAIN
+
+	config MVEC_FILE_SPEC
+		string
+		prompt "libmvec shared library files (use wildcards)"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libmvec
+		default "./lib/libmvec{-*.so,.so.*}"
+
+	endmenu
+endef
+
+
 define Package/libgfortran
 $(call Package/gcc/Default)
   TITLE:=GFortran support library
@@ -654,6 +681,12 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 		$(1)/lib/
   endif
   endef
+  
+  define Package/libmvec/install
+	$(INSTALL_DIR) $(1)/lib
+	$(CP) \
+		$(TOOLCHAIN_DIR)/lib/libmvec.so.* $(1)/lib
+  endef
 
   define Package/ldd/install
 	$(INSTALL_DIR) $(1)/usr/bin/
@@ -772,6 +805,14 @@ else
 	done ; \
 	exit 0
   endef
+  
+  define Package/libmvec/install
+	for file in $(call qstrip,$(CONFIG_MVEC_FILE_SPEC)); do \
+		$(INSTALL_DIR) $(1)/lib ; \
+		$(CP) $(call qstrip,$(CONFIG_MVEC_ROOT_DIR))/$$$$file $(1)/lib/ ; \
+	done ; \
+	exit 0
+  endef
 
   define Package/libatomic/install
 	for file in $(call qstrip,$(CONFIG_LIBATOMIC_FILE_SPEC)); do \
@@ -838,6 +879,7 @@ $(eval $(call BuildPackage,libubsan))
 $(eval $(call BuildPackage,libpthread))
 $(eval $(call BuildPackage,libthread-db))
 $(eval $(call BuildPackage,librt))
+$(eval $(call BuildPackage,libmvec))
 $(eval $(call BuildPackage,libgfortran))
 $(eval $(call BuildPackage,libgo))
 $(eval $(call BuildPackage,libgomp))
