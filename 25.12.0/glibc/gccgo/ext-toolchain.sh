@@ -48,6 +48,7 @@ LIB_SPECS="
 	tasan:	  libtsan
 	lasan:	  liblsan
 	ubasan:	  libubsan
+	mvec:	  libmvec
 "
 
 # Binary specs
@@ -420,7 +421,7 @@ print_config() {
 	fi
 
 	local lib
-	for lib in C RT PTHREAD GCC STDCPP SSP GFORTRAN GOMP GO ATOMIC QUADMATH ASAN TSAN LSAN UBSAN; do
+	for lib in C RT PTHREAD GCC STDCPP SSP GFORTRAN GOMP GO ATOMIC QUADMATH ASAN TSAN LSAN UBSAN MVEC; do
 		local file
 		local spec=""
 		local llib="$(echo "$lib" | sed -e 's#.*#\L&#')"
