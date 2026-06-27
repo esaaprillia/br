@@ -378,14 +378,14 @@ define Package/libmvec/config
 	menu "Configuration"
 	depends on EXTERNAL_TOOLCHAIN && PACKAGE_libmvec
 
-	config MVEC_ROOT_DIR
+	config LIBMVEC_ROOT_DIR
 		string
 		prompt "libmvec shared library base directory"
 		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libmvec
 		default TOOLCHAIN_ROOT  if !NATIVE_TOOLCHAIN
 		default "/"  if NATIVE_TOOLCHAIN
 
-	config MVEC_FILE_SPEC
+	config LIBMVEC_FILE_SPEC
 		string
 		prompt "libmvec shared library files (use wildcards)"
 		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libmvec
@@ -807,9 +807,9 @@ else
   endef
   
   define Package/libmvec/install
-	for file in $(call qstrip,$(CONFIG_MVEC_FILE_SPEC)); do \
+	for file in $(call qstrip,$(CONFIG_LIBMVEC_FILE_SPEC)); do \
 		$(INSTALL_DIR) $(1)/lib ; \
-		$(CP) $(call qstrip,$(CONFIG_MVEC_ROOT_DIR))/$$$$file $(1)/lib/ ; \
+		$(CP) $(call qstrip,$(CONFIG_LIBMVEC_ROOT_DIR))/$$$$file $(1)/lib/ ; \
 	done ; \
 	exit 0
   endef
