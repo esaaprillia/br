@@ -55,7 +55,7 @@ LIB_SPECS="
 BIN_SPECS="
 	ldd:       ldd
 	ldconfig:  ldconfig
-	getconf:  getconf
+	getconf:   getconf
 	gdb:       gdb
 	gdbserver: gdbserver
 "
