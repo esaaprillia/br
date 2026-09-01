@@ -530,6 +530,34 @@ define Package/ldconfig/config
 	endmenu
 endef
 
+
+define Package/getconf
+$(call Package/libc/Default)
+  SECTION:=utils
+  CATEGORY:=Utilities
+  TITLE:=This manual page is part of the POSIX Programmer's Manual.
+endef
+
+define Package/getconf/config
+	menu "Configuration"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_getconf
+
+	config GETCONF_ROOT_DIR
+		string
+		prompt "getconf get configuration values"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_getconf
+		default TOOLCHAIN_ROOT  if !NATIVE_TOOLCHAIN
+		default "/"  if NATIVE_TOOLCHAIN
+
+	config GETCONF_FILE_SPEC
+		string
+		prompt "getconf file"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_getconf
+		default "./bin/getconf"
+
+	endmenu
+endef
+
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 endef
@@ -698,6 +726,11 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 	$(INSTALL_DIR) $(1)/sbin/
 	$(CP) $(TOOLCHAIN_DIR)/sbin/ldconfig $(1)/sbin/
   endef
+  
+  define Package/getconf/install
+	$(INSTALL_DIR) $(1)/bin/
+	$(CP) $(TOOLCHAIN_DIR)/bin/getconf $(1)/bin/
+  endef
 
 else
 
@@ -863,6 +896,15 @@ else
 	done ; \
 	exit 0
   endef
+  
+  define Package/getconf/install
+	for file in $(call qstrip,$(CONFIG_GETCONF_FILE_SPEC)); do \
+		dir=`dirname $$$$file` ; \
+		$(INSTALL_DIR) $(1)/$$$$dir ; \
+		$(CP) $(call qstrip,$(CONFIG_GETCONF_ROOT_DIR))/$$$$file $(1)/$$$$dir/ ; \
+	done ; \
+	exit 0
+  endef
 
 endif
 
@@ -885,3 +927,4 @@ $(eval $(call BuildPackage,libgo))
 $(eval $(call BuildPackage,libgomp))
 $(eval $(call BuildPackage,ldd))
 $(eval $(call BuildPackage,ldconfig))
+$(eval $(call BuildPackage,getconf))
