@@ -55,6 +55,7 @@ LIB_SPECS="
 BIN_SPECS="
 	ldd:       ldd
 	ldconfig:  ldconfig
+	getconf:  getconf
 	gdb:       gdb
 	gdbserver: gdbserver
 "
@@ -437,7 +438,7 @@ print_config() {
 	done
 
 	local bin
-	for bin in LDD LDCONFIG; do
+	for bin in LDD LDCONFIG GETCONF; do
 		local file
 		local spec=""
 		local lbin="$(echo "$bin" | sed -e 's#.*#\L&#')"
